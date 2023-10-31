@@ -2,7 +2,7 @@
 {
     public struct constants
     {
-        public static String ground = " ", wall = "█", room = ".", player = "o", zombie = "Z";
+        public static String ground = " ", wall = "█", room = ".", player = "o";
     }
     internal class Program
     {

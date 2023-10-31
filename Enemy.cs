@@ -26,7 +26,8 @@ namespace rogueLike
             Write(enemyMark);
             ResetColor();
         }
-
+        
+        // Возможно должен быть в контроллере, не смог реализовать запрет спавна в клетке где уже есть объект врага
         private void Spawn()
         {
             List<int[]> spawnMap = new List<int[]>();
@@ -60,10 +61,10 @@ namespace rogueLike
 
         private void Move()
         {
-
+            
         }
 
-        public void IsSeeThePlayer()
+        private void IsSeeThePlayer()
         {
             for (int y = 0; y < viewDistance; y++)
             {

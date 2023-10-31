@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Security;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Console;
@@ -13,25 +14,27 @@ namespace rogueLike
         private World myWorld;
         private Maze maze;
         private Player currentPlayer;
-        private Zombie zombie;
+        private Zombie[] zombie;
         private static int updateRate = 0;
+        private static int level = 1;
         public static bool gameResult = false;
 
-        public Game() 
-        {
-            maze = new Maze();
-            currentPlayer = new Player();
-            zombie = new Zombie();
-            myWorld = new World();
-        }
 
         public void Start()
         {
-            maze = new Maze();
+            maze = new Maze((level * 15) + 30, (level * 2) + 20);
             currentPlayer = new Player();
-            zombie = new Zombie();
+            zombie = new Zombie[level * 2];
+            for(int i = 0; i < level * 2; i++) 
+            {
+                zombie[i] = new Zombie();
+            }
+            
             myWorld = new World();
+
+            if (level == 1)
             intro();
+
             Clear();
             Loop();
             if(!gameResult) OutroWin(); else OutroLose();
@@ -40,9 +43,12 @@ namespace rogueLike
         private void DrawFrame()
         {
             myWorld.Draw();
-            DrawGameStats();
-            zombie.Draw();
             currentPlayer.Draw();
+            foreach(var z in zombie)
+            {
+                z.Draw();
+            }
+            DrawGameStats();
         }
 
         private void HandlePlayerInput()
@@ -85,21 +91,34 @@ namespace rogueLike
                     break;
                 }
                 HandlePlayerInput();
-                System.Threading.Thread.Sleep(10);
+                System.Threading.Thread.Sleep(2);
             }
+        }
+
+        private void DrawGameStats()
+        {
+            SetCursorPosition(0, Maze.Grid.GetLength(0));
+            Write($"Ход: {updateRate} Уровень: {level}");
+        }
+
+        private void LevelUp()
+        {
+            level++;
+            
         }
 
         private void intro()
         {
             Clear();
-            WriteLine("Hi, press any key to start");
+            WriteLine("Hi, press any key to start ");
             ReadKey();
         }
 
         private void OutroWin()
         {
             Clear();
-            WriteLine("Congrats, u win\n Press any key to restart");
+            LevelUp();
+            WriteLine("u win\npress any key to go to another level");
             ReadKey();
             Start();
         }
@@ -107,15 +126,9 @@ namespace rogueLike
         private void OutroLose()
         {
             Clear();
-            WriteLine("U lose\n press key to restart");
+            WriteLine("U lose\npress key to restart");
             ReadKey();
             Start();
-        }
-
-        private void DrawGameStats()
-        {
-            SetCursorPosition(0, 0);
-            Write(updateRate);
         }
 
     }

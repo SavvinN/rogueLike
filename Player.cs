@@ -30,7 +30,8 @@ namespace rogueLike
             ResetColor();
         }
         
-        public virtual int PlayerPosGenerator(String[,] grid)
+        // Генерация позиции игрока, генерирует игрока в другой части лабиринта
+        private int PlayerPosGenerator(String[,] grid)
         {
             int Xmark = 0;
             int PosX = 0;

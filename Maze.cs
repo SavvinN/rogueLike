@@ -17,8 +17,9 @@ namespace rogueLike
         private String wall = constants.wall;
         private String room = constants.room;
         private int _numberOfRooms; // количество комнат
-        // Размеры комнаты(площади удаления), и процент(где 1 = 50%) заполненности лабиринта комнатами
-        private int rheight = 7, rwidth = 5, roomsPercentage = 2; 
+        // Размеры комнаты(площади удаления)
+        private int rheight = 7, rwidth = 5, 
+            roomsPercentage = 3; // коэффициент заполненности лабиринта комнатами
         private Random rnd = new Random();
         private int _sizeX, _sizeY;
 
@@ -48,7 +49,7 @@ namespace rogueLike
         private void sizeRandomizer()
         {
             this._sizeX = toOdd(rnd.Next(30, 120));
-            this._sizeY = toOdd(rnd.Next(20, 30));
+            this._sizeY = toOdd(rnd.Next(20, 29));
         }
 
         private void roomsNumberSelection()
@@ -60,8 +61,8 @@ namespace rogueLike
         {
             return number % 2 == 0 ? number - 1 : number;
         }
-        public String[,] getGrid()
-        { return Grid; }
+        
+        // Отсюда не мой код. Попытался адаптировать под c#, изначально был на с++
 
         private bool deadEnd(int x, int y, String[,] maze, int height, int width)
         {
@@ -226,6 +227,7 @@ namespace rogueLike
                 }
             }
 
+            // Вставка символа выхода/цели
             // в случае если сверху выхода стена
             var T = rnd.Next(1, width - 2);
             if (maze[height - 2, T] != "█")
