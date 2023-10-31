@@ -10,7 +10,7 @@ namespace rogueLike
     internal class Enemy
     {
         private ConsoleColor color;
-        private string enemyMark;
+        private string enemyMark = "Z";
         private int X, Y, viewDistance = 5;
         private String room = constants.room, player = constants.player;
 
@@ -22,6 +22,7 @@ namespace rogueLike
         {
             ForegroundColor = color;
             SetCursorPosition(X, Y);
+            IsTouchPlayer();
             Write(enemyMark);
             ResetColor();
         }
@@ -80,9 +81,9 @@ namespace rogueLike
             }
         }
 
-        public bool IsTouchPlayer()
+        private void IsTouchPlayer()
         {
-            return Player.X == X && Player.Y == Y;
+            Game.gameResult = Player.X == X && Player.Y == Y;
         }
         protected void SetColor(ConsoleColor _color)
         {

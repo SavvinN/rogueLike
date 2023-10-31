@@ -8,7 +8,11 @@ namespace rogueLike
 {
     internal class Maze
     {
-        public static String[,] Grid;
+        public static String[,] Grid =
+        {
+            {""},
+            {""}
+        };
         private String ground = constants.ground;
         private String wall = constants.wall;
         private String room = constants.room;

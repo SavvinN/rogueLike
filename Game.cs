@@ -15,10 +15,11 @@ namespace rogueLike
         private Player currentPlayer;
         private Zombie zombie;
         private static int updateRate = 0;
+        public static bool gameResult = false;
 
         public Game() 
         {
-            maze = new Maze(20, 20);
+            maze = new Maze();
             currentPlayer = new Player();
             zombie = new Zombie();
             myWorld = new World();
@@ -26,18 +27,22 @@ namespace rogueLike
 
         public void Start()
         {
+            maze = new Maze();
+            currentPlayer = new Player();
+            zombie = new Zombie();
+            myWorld = new World();
             intro();
             Clear();
             Loop();
-            Outro();
+            if(!gameResult) OutroWin(); else OutroLose();
         }
 
         private void DrawFrame()
         {
             myWorld.Draw();
             DrawGameStats();
-            currentPlayer.Draw();
             zombie.Draw();
+            currentPlayer.Draw();
         }
 
         private void HandlePlayerInput()
@@ -72,15 +77,15 @@ namespace rogueLike
             string elementAtPlayerPos;
             while (true)
             {
-                DrawFrame();
-                HandlePlayerInput();
+                DrawFrame();   
                 updateRate++;
-                elementAtPlayerPos = myWorld.GetElementAt(Player.Y, Player.X);
-                if(elementAtPlayerPos == "X")
+                elementAtPlayerPos = myWorld.GetElementAt(Player.X, Player.Y);
+                if(elementAtPlayerPos == "X" || Game.gameResult)
                 {
                     break;
                 }
-                System.Threading.Thread.Sleep(2);
+                HandlePlayerInput();
+                System.Threading.Thread.Sleep(10);
             }
         }
 
@@ -91,7 +96,7 @@ namespace rogueLike
             ReadKey();
         }
 
-        private void Outro()
+        private void OutroWin()
         {
             Clear();
             WriteLine("Congrats, u win\n Press any key to restart");
@@ -99,9 +104,17 @@ namespace rogueLike
             Start();
         }
 
+        private void OutroLose()
+        {
+            Clear();
+            WriteLine("U lose\n press key to restart");
+            ReadKey();
+            Start();
+        }
+
         private void DrawGameStats()
         {
-            SetCursorPosition(20, 20);
+            SetCursorPosition(0, 0);
             Write(updateRate);
         }
 

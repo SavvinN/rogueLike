@@ -10,13 +10,11 @@ namespace rogueLike
 {
     internal class Zombie : Enemy
     {
-        private bool touch = false;
         public Zombie() : base()
         {
             SetColor(ConsoleColor.Red);
             SetMarker("Z");
         }
 
-        
     }
 }
