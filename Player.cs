@@ -1,61 +1,47 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using static System.Console;
 
 namespace rogueLike
 {
     internal class Player
     {
-        public static int X {  get; set; }
-        public static int Y { get; set; }
         protected string PlayerMarker;
         protected ConsoleColor PlayerColor;
+        private Position position = new Position();
 
-        public Player()
-        {
-            X = PlayerPosGenerator(Maze.Grid);
-            Y = 0;
+        public Player(int PosX)
+        { 
+            position.Pos = new Vector2(PosX, 0);
             PlayerMarker = "o";
             PlayerColor = ConsoleColor.Green;
         }
 
+        public void SetPos(int Y, int X)
+        {
+            position.Pos = new Vector2 (Y, X);
+        }
+
+        public Vector2 GetPos()
+        {
+            return position.Pos;
+        }
+
         public void Draw()
         {
+            int Y = (int)position.Pos.Y;
+            int X = (int)position.Pos.X;
             ForegroundColor = this.PlayerColor;
-            SetCursorPosition(X, Y);
+            SetCursorPosition(Y, X);
             Write(this.PlayerMarker);
             ResetColor();
         }
         
         // Генерация позиции игрока, генерирует игрока в другой части лабиринта
-        private int PlayerPosGenerator(String[,] grid)
-        {
-            int Xmark = 0;
-            int PosX = 0;
-            Random rnd = new Random();
-            for (int x = 0; x < grid.GetLength(1); x++)
-                {
-                    if(grid[grid.GetLength(0) - 1,x] == "X")
-                    {
-                    Xmark = x;
-                    break;
-                    }
-                }
-
-            if(Xmark < grid.GetLength(1)/2)
-            {
-              PosX = rnd.Next(grid.GetLength(1) / 2, grid.GetLength(1) - 1);
-            }
-            else PosX = rnd.Next(1, grid.GetLength(1) / 2);
-
-
-            if (grid[1, PosX] != constants.wall)
-                return PosX;
-            else
-                return PosX + 1;
-        }
     }
 }

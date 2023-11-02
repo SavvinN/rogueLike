@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Security;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Console;
@@ -12,7 +13,6 @@ namespace rogueLike
     {
 
         private World myWorld;
-        private Maze maze;
         private Player currentPlayer;
         private Zombie[] zombie;
         private static int updateRate = 0;
@@ -22,14 +22,9 @@ namespace rogueLike
 
         public void Start()
         {
-            maze = new Maze((level * 15) + 30, (level * 2) + 20);
-            currentPlayer = new Player();
+            Grid = new Maze((level * 2) + 18, (level * 15) + 5);
+            currentPlayer = new Player(PlayerPosGenerator(Maze.Grid));
             zombie = new Zombie[level * 2];
-            for(int i = 0; i < level * 2; i++) 
-            {
-                zombie[i] = new Zombie();
-            }
-            
             myWorld = new World();
 
             if (level == 1)
@@ -44,21 +39,24 @@ namespace rogueLike
         {
             myWorld.Draw();
             currentPlayer.Draw();
+            /*
             foreach(var z in zombie)
             {
                 z.Draw();
             }
+            */
             DrawGameStats();
         }
 
         private void HandlePlayerInput()
         {
+            Vector2 playerPos = currentPlayer.GetPos();
             ConsoleKeyInfo keyInfo = ReadKey(true);
             ConsoleKey key = keyInfo.Key;
             switch(key)
             {
                 case ConsoleKey.UpArrow:
-                    if(myWorld.isPosWalkable(Player.X, Player.Y - 1))
+                    if(myWorld.isPosWalkable(playerPos))
                         Player.Y -= 1;
                     break;
                 case ConsoleKey.DownArrow:
@@ -77,6 +75,34 @@ namespace rogueLike
                     break;
             }
         }
+
+        private int PlayerPosGenerator(String[,] grid)
+        {
+            int Xmark = 0;
+            int PosX = 0;
+            Random rnd = new Random();
+            for (int x = 0; x < grid.GetLength(1); x++)
+            {
+                if (grid[grid.GetLength(0) - 1, x] == "X")
+                {
+                    Xmark = x;
+                    break;
+                }
+            }
+
+            if (Xmark < grid.GetLength(1) / 2)
+            {
+                PosX = rnd.Next(grid.GetLength(1) / 2, grid.GetLength(1) - 1);
+            }
+            else PosX = rnd.Next(1, grid.GetLength(1) / 2);
+
+
+            if (grid[1, PosX] != "█")
+                return PosX;
+            else
+                return PosX + 1;
+        }
+
         private void Loop()
         {
             Console.CursorVisible = false;

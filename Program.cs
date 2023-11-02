@@ -1,8 +1,10 @@
-﻿namespace rogueLike
+﻿using System.Numerics;
+
+namespace rogueLike
 {
-    public struct constants
+    struct Postion()
     {
-        public static String ground = " ", wall = "█", room = ".", player = "o";
+        public Vector2 Pos { get; set; }
     }
     internal class Program
     {
