@@ -2,7 +2,7 @@
 
 namespace rogueLike
 {
-    struct Postion()
+    struct Position()
     {
         public Vector2 Pos { get; set; }
     }
@@ -11,6 +11,7 @@ namespace rogueLike
         
         static void Main(string[] args)
         {
+            Console.CursorVisible = false;
             Game currentGame = new Game();
             currentGame.Start();
         }

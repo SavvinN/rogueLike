@@ -8,19 +8,15 @@ namespace rogueLike
 {
     internal class Maze
     {
-        private String[,] Grid =
-        {
-            {""},
-            {""}
-        };
-        private String ground = " ";
-        private String wall = "█";
-        private String room = ".";
+        private String[,] Grid = { { "" } };
+        public String ground = " ";
+        public String wall = "█";
+        public String room = ".";
         private int _numberOfRooms = 3; // количество комнат
-        // Размеры комнаты(площади удаления)
+        // Размеры комнат
         private int rheight = 7, 
                     rwidth = 5, 
-                    roomsPercentage = 3; // коэффициент заполненности лабиринта комнатами
+                    roomsPercentage = 2; // коэффициент заполненности лабиринта комнатами
         private Random rnd = new Random();
         private int _sizeX = 20, _sizeY = 20;
 
@@ -47,29 +43,28 @@ namespace rogueLike
             GenerateMaze(_sizeY, _sizeX, _numberOfRooms);
         }
 
-
         public String[,] GetGrid()
         {
             return Grid;
         }
 
-        private void SizeRandomizer()
+        public void SizeRandomizer()
         {
             this._sizeX = ToOdd(rnd.Next(30, 120));
             this._sizeY = ToOdd(rnd.Next(20, 29));
         }
 
-        private void RoomsNumberSelection()
+        public void RoomsNumberSelection()
         {
             _numberOfRooms = ((_sizeX * _sizeY) / (rheight * rwidth)) / roomsPercentage;
         }
 
-        private int ToOdd(int number)
+        public int ToOdd(int number)
         {
             return number % 2 == 0 ? number - 1 : number;
         }
 
-        private bool DeadEnd(int x, int y, String[,] Grid, int height, int width)
+        public bool DeadEnd(int x, int y, String[,] Grid, int height, int width)
         {
             int a = 0;
                 if (x != 1 && x - 2 >= 0)
@@ -106,14 +101,14 @@ namespace rogueLike
                 return false;
         }
 
-        private void GenerateBase(int height, int width)
+        public void GenerateBase(int height, int width)
         {
             for (int i = 0; i < height; i++) // Массив заполняется стеной
                 for (int j = 0; j < width; j++)
                     Grid[i, j] = wall;
         }
 
-        private void DigTunnels(int height, int width)
+        public void DigTunnels(int height, int width)
         {
             int x = 3, y = 3, a = 0; // Точка приземления крота и счетчик
             while (a < 10000)
@@ -176,7 +171,7 @@ namespace rogueLike
             }
         }
 
-        private void GenerateRooms(int height, int width, int k)
+        public void GenerateRooms(int height, int width, int k)
         {
             int x = 3, y = 3;
             bool b = true, swap = true;
@@ -213,7 +208,7 @@ namespace rogueLike
             }
         }
 
-        private void DigRoom(int y, int x, bool swap)
+        public void DigRoom(int y, int x, bool swap)
         {
             for (int i = (y - rheight / 2); i < (y + rheight / 2 + 1); i++) // Раскопки комнаты
                 for (int j = (x - rwidth / 2); j < (x + rwidth / 2 + 1); j++)
@@ -225,7 +220,7 @@ namespace rogueLike
             RotateRoom(swap);
         }
 
-        private void RotateRoom(bool swap)
+        public void RotateRoom(bool swap)
         {
             // swap отвечает за возможность поворачивать комнату на 90°
             if (swap)
@@ -236,7 +231,7 @@ namespace rogueLike
             } // Вот так настоящие мужики меняют переменные значениями
         }
 
-        private void CreateExit(int height, int width)
+        public void CreateExit(int height, int width)
         {
             // Вставка символа выхода/цели
             // в случае если сверху выхода стена 
@@ -253,6 +248,8 @@ namespace rogueLike
 
         public void GenerateMaze(int height, int width, int k)
         {
+            rheight--; rwidth--;
+
             GenerateBase(width, height);
 
             DigTunnels(width, height);

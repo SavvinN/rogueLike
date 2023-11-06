@@ -11,13 +11,13 @@ namespace rogueLike
 {
     internal class Player
     {
-        protected string PlayerMarker;
-        protected ConsoleColor PlayerColor;
+        private string PlayerMarker;
+        private ConsoleColor PlayerColor;
         private Position position = new Position();
 
         public Player(int PosX)
         { 
-            position.Pos = new Vector2(PosX, 0);
+            position.Pos = new Vector2(1, PosX);
             PlayerMarker = "o";
             PlayerColor = ConsoleColor.Green;
         }
@@ -34,14 +34,11 @@ namespace rogueLike
 
         public void Draw()
         {
-            int Y = (int)position.Pos.Y;
-            int X = (int)position.Pos.X;
             ForegroundColor = this.PlayerColor;
-            SetCursorPosition(Y, X);
+            SetCursorPosition((int)position.Pos.Y, (int)position.Pos.X);
             Write(this.PlayerMarker);
             ResetColor();
         }
         
-        // Генерация позиции игрока, генерирует игрока в другой части лабиринта
     }
 }

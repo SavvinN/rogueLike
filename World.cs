@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Console;
@@ -8,26 +9,27 @@ namespace rogueLike
 {
     internal class World
     {
-        private String ground = constants.ground;
-        private String room = constants.room;
-        private int Rows = 0;
-        private int Cols = 0;
-        private String frame = "";
-
-        public World()
+        public String ground = " ";
+        public String room = ".";
+        public int Rows = 0;
+        public int Cols = 0;
+        public String frame = "";
+        private String[,] _Grid = { {""} };
+        public World(String[,] Grid)
         {
-            Rows = Maze.Grid.GetLength(0);
-            Cols = Maze.Grid.GetLength(1);
-            GetFrame();
+            _Grid = Grid;
+            Rows = Grid.GetLength(0);
+            Cols = Grid.GetLength(1);
+            GetFrame(Grid);
         }
 
-        private void GetFrame()
+        public void GetFrame(String[,] Grid)
         {
             for (int y = 0; y < Rows; y++)
             {
                 for (int x = 0; x < Cols; x++)
                 {
-                    frame += Maze.Grid[y, x];
+                    frame += Grid[y, x] == "." ? " " : Grid[y, x];
                 }
                 frame += "\n";
             }
@@ -38,6 +40,7 @@ namespace rogueLike
             SetCursorPosition(0, 0);
             Write(frame);
         }
+        
 
         public bool isPosWalkable (int x, int y)
         {
@@ -47,12 +50,21 @@ namespace rogueLike
                 return false;
             }
             // Проверка стен
-            return Maze.Grid[y, x] == ground || Maze.Grid[y, x] == "X" || Maze.Grid[y, x] == room;
+            return _Grid[y, x] == ground || _Grid[y, x] == "X" || _Grid[y, x] == room;
         }
 
-        public string GetElementAt(int x, int y)
+        public string GetElementAt(Vector2 Pos)
         {
-            return Maze.Grid[y, x];
-        }sdadsdsa
+            return _Grid[(int)Pos.X, (int)Pos.Y];
+        }
+
+        public bool IsSpawnable(int y, int x)
+        {
+            return (_Grid[y, x] == room && _Grid[y - 1, x] == room &&
+                        _Grid[y + 1, x] == room && _Grid[y, x - 1] == room &&
+                        _Grid[y, x + 1] == room && _Grid[y - 1, x - 1] == room &&
+                        _Grid[y + 1, x + 1] == room && _Grid[y + 1, x - 1] == room &&
+                        _Grid[y - 1, x + 1] == room);
+        }
     }
 }
