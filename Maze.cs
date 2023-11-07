@@ -9,9 +9,7 @@ namespace rogueLike
     internal class Maze
     {
         private String[,] Grid = { { "" } };
-        public String ground = " ";
-        public String wall = "█";
-        public String room = ".";
+        private String ground, wall, room;
         private int _numberOfRooms = 3; // количество комнат
         // Размеры комнат
         private int rheight = 7, 
@@ -19,23 +17,11 @@ namespace rogueLike
                     roomsPercentage = 2; // коэффициент заполненности лабиринта комнатами
         private Random rnd = new Random();
         private int _sizeX = 20, _sizeY = 20;
-
-        public Maze ()
+        public Maze(int sizeX, int sizeY, String wall, String ground, String room)
         {
-            SizeRandomizer();
-            RoomsNumberSelection();
-            Grid = new String[_sizeX, _sizeY];
-            GenerateMaze(_sizeY, _sizeX, _numberOfRooms);
-        }
-        public Maze(int sizeX, int sizeY, int numberOfRooms)
-        {
-            _sizeX = ToOdd(sizeX);
-            _sizeY = ToOdd(sizeY);
-            Grid = new String[_sizeX, _sizeY];
-            GenerateMaze(_sizeY, _sizeX, numberOfRooms);
-        }
-        public Maze(int sizeX, int sizeY)
-        {
+            this.wall = wall;
+            this.ground = ground;
+            this.room = room;
             _sizeX = ToOdd(sizeX);
             _sizeY = ToOdd(sizeY);
             RoomsNumberSelection();

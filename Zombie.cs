@@ -17,5 +17,11 @@ namespace rogueLike
             SetColor(ConsoleColor.Red);
             SetMarker("Z");
         }
+
+        public override void MoveToPlayer(Vector2 playerPos, World myWorld)
+        {
+             SetPos(path[1].X, path[1].Y);
+        }
+
     }
 }

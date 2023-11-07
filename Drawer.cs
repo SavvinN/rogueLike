@@ -10,20 +10,24 @@ namespace rogueLike
 {
     internal class Drawer
     {
-        public static void DrawFrame(World myWorld, Player currentPlayer, Zombie[] zombie)
+        public static void DrawFrame(World myWorld, Player currentPlayer, Zombie[] zombie, Archer[] archer)
         {
             myWorld.Draw();
             currentPlayer.Draw();
             foreach(var z in zombie)
             {
                 z.Draw();
-            } 
+            }
+            foreach (var a in archer)
+            {
+                a.Draw();
+            }
         }
 
-        public static void DrawGameStats(int Y, int updateRate, int level)
+        public static void DrawGameStats(int Y, int updateRate, int level, int life)
         {
             SetCursorPosition(0, Y + 1);
-            Write($"UpdateRate: {updateRate} Уровень: {level}");
+            Write($"UpdateRate: {updateRate} LVL: {level} Life: {life}");
         }
 
         public static void DrawIntro()
@@ -45,7 +49,7 @@ namespace rogueLike
         public static void DrawOutroLose()
         {
             Clear();
-            WriteLine("U lose\npress key to restart");
+            WriteLine("U lose");
             ReadKey();
             Clear();
         }

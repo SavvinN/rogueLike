@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Net.Security;
 using System.Numerics;
@@ -16,70 +17,158 @@ namespace rogueLike
 
         private World myWorld;
         private Player currentPlayer;
-        private Maze maze;
         private Zombie[] zombie;
-        private List<int[]> spawnMap = new List<int[]>();
+        private Archer[] archer;
         private int updateRate = 0;
         private int level = 1;
-        private int sizeX = 20;
-        private int sizeY = 20;
+        private int life = 3;
+        private bool isChasing = false;
+        public Game()
+        {
+            myWorld = new World();
+            currentPlayer = new Player(myWorld.GetPlayerSpawnPos());
+        }
 
         public void Start()
         {
-            maze = new Maze(sizeY, sizeX);
-            myWorld = new World(maze.GetGrid());
-            currentPlayer = new Player(PlayerPosGenerator());
-
-            EnemySpawner();
             Drawer.DrawIntro();
-
-            CheckGameStatus();
+            SpawnEnemy();
+            Loop();
         }
 
-        public bool Loop()
+        public void Loop()
         {
-            while (!GameEndChecker())
+            while (PlayerStatus() == 0)
             {
-                if (IsPlayerALife())
-                {
-                    break;
-                }
                 ChasePlayer();
-                Drawer.DrawFrame(myWorld, currentPlayer, zombie);
-                Drawer.DrawGameStats(maze.GetGrid().GetLength(0) - 1, updateRate, level);
+                Drawer.DrawFrame(myWorld, currentPlayer, zombie, archer);
+                Drawer.DrawGameStats(myWorld.GetGrid().GetLength(0) - 1,
+                    updateRate,
+                    level,
+                    life
+                    );
                 updateRate++;
                 HandlePlayerInput();
                 System.Threading.Thread.Sleep(20);
             }
-            LevelUp();
-            return true;
+            GameStatus();
         }
 
-        private void EnemySpawner()
+        private int PlayerStatus() =>
+                IsReachedGoal()
+                ? 1
+                : IsUnderAttack()
+                ? 2
+                : 0;
+
+        private void GameStatus()
         {
-            zombie = new Zombie[level * 2];
+            switch (PlayerStatus())
+            {
+                case 1:
+                    LevelUp();
+                    Start();
+                    break;
+                case 2:
+                    currentPlayer.SetPos(myWorld.GetPlayerSpawnPos());
+                    life--;
+                    if (life >= 0)
+                        Start();
+                    else
+                        Drawer.DrawOutroLose();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private bool IsUnderAttack()
+        {
+            bool touched = false;
+            for (int i = 0; i < zombie.Length; i++)
+            {
+                touched = zombie[i].IsTouchPlayer(currentPlayer.GetPos());
+                if (touched)
+                {
+                    break;
+                }
+            }
+            return touched;
+        }
+
+        private bool IsReachedGoal()
+        {
+            string elementAtPlayerPos = myWorld.GetElementAt(currentPlayer.GetPos());
+
+            return elementAtPlayerPos == "X" ? true : false;
+        }
+
+        private void LevelUp()
+        {
+            level++;
+            myWorld.RegenerateMaze(level);
+            currentPlayer.SetPos(myWorld.GetPlayerSpawnPos());
+        }
+
+        private List<int[]> GenerateSpawnMap()
+        {
+            List<int[]> spawnMap = new List<int[]>();
+            int numberOfSpawnCells = 0;
+            Random rnd = new Random();
+            for (int y = 0; y < myWorld.GetGrid().GetLength(0); y++)
+                for (int x = 0; x < myWorld.GetGrid().GetLength(1); x++)
+                {
+                    {
+                        if (myWorld.IsSpawnable(y, x))
+                        {
+                            int[] YX = { y, x };
+                            numberOfSpawnCells++;
+                            spawnMap.Add(YX);
+                        }
+                    }
+                }
+            return spawnMap;
+        }
+
+        private void SpawnEnemy()
+        {
+            List<int[]> spawnMap = new List<int[]>();
+            zombie = new Zombie[level];
+            archer = new Archer[level/2];
             spawnMap = GenerateSpawnMap();
             Random rnd = new Random();
             for (int i = 0; i < zombie.Length; i++)
             {
-                int random = rnd.Next(0, spawnMap.Count - 1);
-                int X = spawnMap[random][0];
-                int Y = spawnMap[random][1];
-                spawnMap.Remove(spawnMap[random]);
-                zombie[i] = new Zombie(new Vector2(Y, X));
+                zombie[i] = new Zombie(GetSpawnPos(spawnMap));
+                zombie[i].FindPath(myWorld.GetGrid(), currentPlayer.GetPos());
+
+            }
+            for (int i = 0; i < archer.Length; i++)
+            {
+                archer[i] = new Archer(GetSpawnPos(spawnMap));
             }
         }
 
-        private void CheckGameStatus()
+        private Vector2 GetSpawnPos(List<int[]> spawnMap)
         {
-            if (Loop())
+            Random rnd = new Random();
+            int random = rnd.Next(0, spawnMap.Count - 1);
+            int X = spawnMap[random][0];
+            int Y = spawnMap[random][1];
+            return new Vector2(Y, X);
+        }
+
+        private void ChasePlayer()
+        {
+            foreach (var z in zombie)
             {
-                Drawer.DrawOutroWin();
-                Start();
+                if(updateRate % 15 == 0)
+                    z.ChasePlayer(currentPlayer.GetPos(), myWorld);
             }
-            else
+            foreach (var a in archer)
             {
-                Drawer.DrawOutroLose();
+                if (updateRate % 20 == 0)
+                    a.ChasePlayer(currentPlayer.GetPos(), myWorld);
             }
         }
 
@@ -87,11 +176,9 @@ namespace rogueLike
         {
             int PlayerX = (int)currentPlayer.GetPos().Y;
             int PlayerY = (int)currentPlayer.GetPos().X;
-
-            ConsoleKeyInfo keyInfo;
             if (KeyAvailable)
             {
-                keyInfo = ReadKey(true);
+                ConsoleKeyInfo keyInfo = ReadKey(true);
                 ConsoleKey key = keyInfo.Key;
                 switch (key)
                 {
@@ -117,103 +204,6 @@ namespace rogueLike
             }
         }
 
-        public int PlayerPosGenerator()
-        {
-            int Xmark = 0;
-            int PosX = 0;
-            String[,] grid = maze.GetGrid();
-            Random rnd = new Random();
-            for (int x = 0; x < grid.GetLength(1); x++)
-            {
-                if (grid[grid.GetLength(0) - 1, x] == "X")
-                {
-                    Xmark = x;
-                    break;
-                }
-            }
 
-            if (Xmark < grid.GetLength(1) / 2)
-            {
-                PosX = rnd.Next(grid.GetLength(1) / 2, grid.GetLength(1) - 1);
-            }
-            else PosX = rnd.Next(1, grid.GetLength(1) / 2);
-
-
-            if (grid[1, PosX] != "█")
-                return PosX;
-            else
-                return PosX + 1;
-        }
-
-        private bool IsPlayerALife()
-        {
-            bool touched = false;
-            for (int i = 0; i < zombie.Length; i++)
-            {
-                touched = zombie[i].IsTouchPlayer(currentPlayer.GetPos());
-                if(touched)
-                {
-                    break;
-                }
-            }
-            return touched;
-        }
-
-        private bool GameEndChecker()
-        {
-            string elementAtPlayerPos = myWorld.GetElementAt(currentPlayer.GetPos());
-
-            return elementAtPlayerPos == "X" ? true : false;
-        }
-
-        private void LevelUp()
-        {
-            level++;
-            sizeX += 15;
-            sizeY += 2;
-        }
-
-        private List<int[]> GenerateSpawnMap()
-        {
-            List<int[]> spawnMap = new List<int[]>();
-            int numberOfSpawnCells = 0;
-            Random rnd = new Random();
-            for (int y = 0; y < maze.GetGrid().GetLength(0); y++)
-                for (int x = 0; x < maze.GetGrid().GetLength(1); x++)
-                {
-                    {
-                        if (myWorld.IsSpawnable(y, x))
-                        {
-                            int[] YX = { y, x };
-                            numberOfSpawnCells++;
-                            spawnMap.Add(YX);
-                        }
-                    }
-                }
-            return spawnMap;
-        }
-
-
-        private void ChasePlayer()
-        {
-
-            foreach (var z in zombie)
-            {
-                if (z.IsSeeThePlayer(currentPlayer.GetPos(), maze.GetGrid()))
-                {
-                    if (updateRate % 10 == 0)
-                    {
-                        List<Point> path = new List<Point>();
-                        path = PathFinder.FindPath(
-                            maze.GetGrid(),
-                            new Point((int)z.GetPos().X, (int)z.GetPos().Y),
-                            new Point((int)currentPlayer.GetPos().Y, (int)currentPlayer.GetPos().X));
-                        z.SetPos(path[1].X, path[1].Y);
-                    }
-                    z.color = ConsoleColor.DarkRed;
-                }
-                else z.color = ConsoleColor.Red;
-            }
-        }
     }
 }

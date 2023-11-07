@@ -15,17 +15,18 @@ namespace rogueLike
         private ConsoleColor PlayerColor;
         private Position position = new Position();
 
-        public Player(int PosX)
-        { 
-            position.Pos = new Vector2(1, PosX);
+        public Player(Vector2 pos)
+        {
+            SetPos(pos);
             PlayerMarker = "o";
             PlayerColor = ConsoleColor.Green;
         }
 
-        public void SetPos(int Y, int X)
-        {
-            position.Pos = new Vector2 (Y, X);
-        }
+        public void SetPos(int Y, int X) =>
+            position.Pos = new Vector2(Y, X);
+
+        public void SetPos(Vector2 Pos) =>
+            position.Pos = Pos;
 
         public Vector2 GetPos()
         {
