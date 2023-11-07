@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Console;
@@ -9,82 +10,72 @@ namespace rogueLike
 {
     internal class Enemy
     {
-        private ConsoleColor color;
+        public ConsoleColor color;
         private string enemyMark = "Z";
-        private int X, Y, viewDistance = 5;
-        private String room = constants.room, player = constants.player;
+        private Position position = new Position();
+        private int viewDistance = 5;
 
-        public Enemy()
+        public Enemy(Vector2 spawnPos)
         {
-            Spawn();
+            Spawn(spawnPos);
         }
+
+        public void SetPos(int Y, int X)
+        {
+            position.Pos = new Vector2(Y, X);
+        }
+
+        public void SetPos(Vector2 Pos)
+        {
+            position.Pos = Pos;
+        }
+
+        public Vector2 GetPos()
+        {
+            return position.Pos;
+        }
+
         public void Draw()
         {
             ForegroundColor = color;
-            SetCursorPosition(X, Y);
-            IsTouchPlayer();
+            SetCursorPosition((int)GetPos().X, (int)GetPos().Y);
             Write(enemyMark);
             ResetColor();
         }
         
-        // Возможно должен быть в контроллере, не смог реализовать запрет спавна в клетке где уже есть объект врага
-        private void Spawn()
+        public void Spawn(Vector2 spawnPos)
         {
-            List<int[]> spawnMap = new List<int[]>();
-            int numberOfSpawnCells = 0;
-            Random rnd = new Random();
-            for (int y = 0; y < Maze.Grid.GetLength(0); y++)
-                for (int x = 0; x < Maze.Grid.GetLength(1); x++)
-                {
-                    {
-                        if (IsSpawnable(y, x))
-                        {
-                            int[] YX = { y, x };
-                            numberOfSpawnCells++;
-                            spawnMap.Add(YX);
-                        }
-                    }
-                }
-            int i = rnd.Next(0, numberOfSpawnCells - 1);
-            X = spawnMap[i][1];
-            Y = spawnMap[i][0];
+            SetPos(spawnPos);
         }
 
-        private bool IsSpawnable(int y, int x)
-        {
-            return (Maze.Grid[y, x] == room && Maze.Grid[y - 1, x] == room &&
-                        Maze.Grid[y + 1, x] == room && Maze.Grid[y, x - 1] == room &&
-                        Maze.Grid[y, x + 1] == room && Maze.Grid[y - 1, x - 1] == room &&
-                        Maze.Grid[y + 1, x + 1] == room && Maze.Grid[y + 1, x - 1] == room &&
-                        Maze.Grid[y - 1, x + 1] == room);
-        }
-
-        private void Move()
+        private void MovePatrol()
         {
             
         }
 
-        private void IsSeeThePlayer()
+        public bool IsSeeThePlayer(Vector2 PlayerPosition, String[,] maze)
         {
-            for (int y = 0; y < viewDistance; y++)
+            int k = 0;
+            bool walled = false;
+            int x = (int)GetPos().Y;
+            int y = (int)GetPos().X;
+            while (PlayerPosition != new Vector2(x,y))
             {
-                for (int x = 0; x < viewDistance; x++)
-                {
-                    if ((Y + y == Player.Y && X + x == Player.X) 
-                        || (Y - y == Player.Y && X - x == Player.X)
-                        || (Y + y == Player.Y && X - x == Player.X)
-                        || (Y - y == Player.Y && X + x == Player.X))
-                    {
-                        SetCursorPosition(60, 60);
-                        WriteLine("IseeThePlayer");
-                    }
-                }
+                if (PlayerPosition.X != x)
+                    x += PlayerPosition.X > x ? 1 : -1;
+                if(PlayerPosition.Y != y)
+                    y += PlayerPosition.Y > y ? 1 : -1;
+                k++;
+                walled = maze[x,y] == "█"? true : true;
             }
+            SetCursorPosition(60, 20);
+            Write(k);
+            return viewDistance > k;
         }
 
-        private void IsTouchPlayer()
+        public bool IsTouchPlayer(Vector2 playerPos)
         {
-            Game.gameResult = Player.X == X && Player.Y == Y;
+            return playerPos == new Vector2 (GetPos().Y, GetPos().X);
         }
         protected void SetColor(ConsoleColor _color)
         {
@@ -95,8 +86,6 @@ namespace rogueLike
         {
             enemyMark = _mark;
         }
-
-
     }
 
 }
