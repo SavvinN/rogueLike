@@ -120,8 +120,6 @@ namespace rogueLike
                     y += PlayerPosition.Y > y ? 1 : -1;
                 k++;
             }
-            SetCursorPosition(60, 20);
-            Write(k);
             return viewDistance > k;
         }
 

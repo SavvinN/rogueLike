@@ -11,44 +11,58 @@ namespace rogueLike
 {
     internal class Arrow
     {
-        private int _direction, distance;
+        private int _direction, distance = 8;
         private String mark = "*";
         private Position position = new Position();
         private ConsoleColor color = ConsoleColor.DarkCyan;
-
-        public Arrow(int direction, Vector2 pos, World myWorld)
+        private int rate = 0;
+        private bool isFligh = false;
+        private bool isWall = false;
+        public Arrow(Vector2 pos, int direction)
         {
+            isFligh = true;
             mark = "*";
             position.Pos = pos;
-            Move(direction, myWorld);
+            SetDirection(direction);
         }
 
+        public void SetDirection(int direction) 
+        { 
+            _direction = direction;
+        }
 
-        private void Move(int direction, World myWorld)
+        public void Fire(int direction, World myWorld, Vector2 archPos)
         {
-            int X = (int)GetPos().X;
-            int Y = (int)GetPos().Y;
-
-            if (direction == 1 && myWorld.isPosWalkable(X, Y + 1))
+            SetDirection(direction);
+            switch (_direction)
             {
-                SetPos(X, Y + 1);
+                case 1:
+                    if(myWorld.isPosWalkable(GetPos().X, GetPos().Y - 1))
+                        SetPos(GetPos().X, GetPos().Y - 1);
+                    else
+                        RemoveArrow(archPos);
+                    break;
+                case 2:
+                    if (myWorld.isPosWalkable(GetPos().X, GetPos().Y + 1))
+                        SetPos(GetPos().X, GetPos().Y + 1);
+                    else
+                        RemoveArrow(archPos);
+                    break;
+                case 3:
+                    if (myWorld.isPosWalkable(GetPos().X - 1, GetPos().Y))
+                        SetPos(GetPos().X - 1, GetPos().Y);
+                    else
+                        RemoveArrow(archPos);
+                    break;
+                case 4:
+                    if (myWorld.isPosWalkable(GetPos().X + 1, GetPos().Y))
+                        SetPos(GetPos().X + 1, GetPos().Y);
+                    else
+                        RemoveArrow(archPos);
+                    break;
+                default:
+                    break;
             }
-
-            if (direction == 2 && myWorld.isPosWalkable(X + 1, Y))
-            {
-                SetPos(X + 1, Y);
-            }
-
-            if (direction == 3 && myWorld.isPosWalkable(X - 1, Y))
-            {
-                SetPos(X - 1, Y);
-            }
-
-            if (direction == 4 && myWorld.isPosWalkable(X, Y - 1))
-            {
-                SetPos(X, Y - 1);
-            }
-
         }
 
         public void isVisible(bool visible) => 
@@ -62,12 +76,31 @@ namespace rogueLike
             ResetColor();
         }
 
+        public void UpdatePos(Vector2 archPos, World myWorld)
+        {
+            if (isFligh)
+                rate++;
+            if (rate <= distance)
+                Fire(_direction, myWorld, archPos);
+            if (rate == distance)
+                RemoveArrow(archPos);
+        }
+
+        private void RemoveArrow(Vector2 archPos)
+        {
+            isVisible(false);
+            SetPos(archPos);
+        }
+
+        public Vector2 GetPos() => position.Pos;
+
+        public void SetPos(float Y, float X) =>
+            position.Pos = new Vector2(Y, X);
+
         public void SetPos(int Y, int X) =>
-        position.Pos = new Vector2(Y, X);
+            position.Pos = new Vector2(Y, X);
 
         public void SetPos(Vector2 Pos) =>
             position.Pos = Pos;
-
-        public Vector2 GetPos() => position.Pos;
     }
 }

@@ -11,6 +11,7 @@ namespace rogueLike
         
         static void Main(string[] args)
         {
+            Console.CursorVisible = false;
             Game currentGame = new Game();
             currentGame.Start();
         }

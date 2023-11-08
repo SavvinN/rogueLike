@@ -14,16 +14,15 @@ namespace rogueLike
         {
             myWorld.Draw();
             currentPlayer.Draw();
-            foreach(var z in zombie)
-            {
-                z.Draw();
-            }
             foreach (var a in archer)
             {
                 a.Draw();
                 a.DrawArrow();
             }
-
+            foreach (var z in zombie)
+            {
+                z.Draw();
+            }
         }
 
         public static void DrawGameStats(int Y, int updateRate, int level, int life)

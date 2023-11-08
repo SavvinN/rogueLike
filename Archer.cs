@@ -14,7 +14,8 @@ namespace rogueLike
         private bool down = false;
         private bool right = false;
         private bool left = false;
-        private Arrow arrow;
+        private bool isShooted = false;
+        Arrow arrow;
 
         public Archer(Vector2 spawnPos) : base(spawnPos)
         {
@@ -25,35 +26,53 @@ namespace rogueLike
 
         public void DrawArrow()
         {
-            
+            if(isShooted)
+            arrow.Draw();
         }
 
-        public void fireArrow(World myWorld)
+        public void FireArrow(int direction)
         {
-            if (up)
-            {
-                arrow = new Arrow(1, GetPos(), myWorld);
-            }
-            if (down)
-            {
-                arrow = new Arrow(2, GetPos(), myWorld);
-            }
-            if (right)
-            {
-                arrow = new Arrow(3, GetPos(), myWorld);
-            }
-            if (left)
-            {
-                arrow = new Arrow(4, GetPos(), myWorld);
-            }
+            if(!isShooted)
+                arrow = new Arrow(GetPos(), direction);
+            isShooted = true;
+        }
+
+        private Vector2 GetArrowPos()
+        {
+            if (arrow != null)
+                return arrow.GetPos();
+            else 
+                return new Vector2(-1,-1);
+        }
+
+        public void UpdateArrowPos(World myWorld)
+        {
+            if (isShooted)
+                arrow.UpdatePos(GetPos(), myWorld);
+            RefreshArrow();
+        }
+
+        public bool ArrowHitPlayer(Vector2 playerPos)
+        {
+            if (GetArrowPos() == new Vector2(playerPos.Y, playerPos.X))
+                return true;
+            else
+                return false;
+        }
+
+        public void RefreshArrow()
+        {
+            if (arrow != null)
+                if (arrow.GetPos() == GetPos())
+                    isShooted = false;
         }
 
         private void spotPlayerDirection(Vector2 PlayerPos)
         {
-            up = GetPos().X < PlayerPos.X;
-            down = GetPos().X > PlayerPos.X;
-            left = GetPos().Y > PlayerPos.Y;
-            right = GetPos().Y < PlayerPos.Y;
+            down = GetPos().Y < PlayerPos.X;
+            up = GetPos().Y > PlayerPos.X;
+            left = GetPos().X > PlayerPos.Y;
+            right = GetPos().X < PlayerPos.Y;
         }
 
         public override void MoveToPlayer(Vector2 playerPos, World myWorld)
@@ -66,6 +85,15 @@ namespace rogueLike
             {
                 Escape(playerPos, myWorld);
             }
+
+            if(up && (!left && !right))
+                FireArrow(1);
+            if (down && (!left && !right))
+                FireArrow(2);
+            if (left && (!up && !down))
+                FireArrow(3);
+            if (right && (!up && !down))
+                FireArrow(4);
         }
         private void Escape(Vector2 playerPos, World myWorld)
         {
@@ -74,9 +102,9 @@ namespace rogueLike
 
             spotPlayerDirection(playerPos);
 
-            if (up && myWorld.isPosWalkable(X, Y - 1))
+            if (up && myWorld.isPosWalkable(X, Y + 1))
             {
-                SetPos(X, Y - 1);
+                SetPos(X, Y + 1);
             }
             if (right && myWorld.isPosWalkable(X - 1, Y))
             {
@@ -86,9 +114,9 @@ namespace rogueLike
             {
                 SetPos(X + 1, Y);
             }
-            if (down && myWorld.isPosWalkable(X, Y + 1))
+            if (down && myWorld.isPosWalkable(X, Y - 1))
             {
-                SetPos(X, Y + 1);
+                SetPos(X, Y - 1);
             }
         }
     }

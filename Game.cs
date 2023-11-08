@@ -41,8 +41,8 @@ namespace rogueLike
         {
             while (PlayerStatus() == 0)
             {
-                ChasePlayer();
                 Drawer.DrawFrame(myWorld, currentPlayer, zombie, archer);
+                ChasePlayer();
                 Drawer.DrawGameStats(myWorld.GetGrid().GetLength(0) - 1,
                     updateRate,
                     level,
@@ -91,6 +91,15 @@ namespace rogueLike
                 touched = zombie[i].IsTouchPlayer(currentPlayer.GetPos());
                 if (touched)
                 {
+                    break;
+                }
+            }
+
+            foreach(var a in archer)
+            {
+                if(a.ArrowHitPlayer(currentPlayer.GetPos()))
+                {
+                    touched = true;
                     break;
                 }
             }
@@ -170,12 +179,10 @@ namespace rogueLike
             }
             foreach (var a in archer)
             {
-                if (updateRate % 20 == 0)
+                if (updateRate % 30 == 0)
                     a.ChasePlayer(currentPlayer.GetPos(), myWorld);
-                if(updateRate % 50 == 0)
-                {
-                    a.fireArrow(myWorld);
-                }
+                if (updateRate % 10 == 0)
+                    a.UpdateArrowPos(myWorld);        
             }
         }
 

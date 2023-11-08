@@ -79,6 +79,19 @@ namespace rogueLike
             return _Grid[y, x] == ground || _Grid[y, x] == "X" || _Grid[y, x] == room;
         }
 
+        public bool isPosWalkable(float X, float Y)
+        {
+            int x = (int)X;
+            int y = (int)Y;
+            // Проверка границ
+            if (x < 0 || y < 0 || x >= Cols || y >= Rows)
+            {
+                return false;
+            }
+            // Проверка стен
+            return _Grid[y, x] == ground || _Grid[y, x] == "X" || _Grid[y, x] == room;
+        }
+
         public string GetElementAt(Vector2 Pos)
         {
             return _Grid[(int)Pos.X, (int)Pos.Y];
