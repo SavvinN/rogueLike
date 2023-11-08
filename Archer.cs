@@ -25,7 +25,7 @@ namespace rogueLike
 
         public void DrawArrow()
         {
-            arrow.Draw();
+            
         }
 
         public void fireArrow(World myWorld)

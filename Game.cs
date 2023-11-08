@@ -107,6 +107,8 @@ namespace rogueLike
         private void LevelUp()
         {
             level++;
+            numberOfArch = level / 2;
+            numberOfZomb = level;
             myWorld.RegenerateMaze(level);
             currentPlayer.SetPos(myWorld.GetPlayerSpawnPos());
         }
