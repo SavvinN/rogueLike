@@ -22,6 +22,7 @@ namespace rogueLike
         private int updateRate = 0;
         private int level = 1;
         private int life = 3;
+        private int numberOfZomb = 1, numberOfArch = 1;
         private bool isChasing = false;
         public Game()
         {
@@ -133,8 +134,8 @@ namespace rogueLike
         private void SpawnEnemy()
         {
             List<int[]> spawnMap = new List<int[]>();
-            zombie = new Zombie[level];
-            archer = new Archer[level/2];
+            zombie = new Zombie[numberOfZomb];
+            archer = new Archer[numberOfArch];
             spawnMap = GenerateSpawnMap();
             Random rnd = new Random();
             for (int i = 0; i < zombie.Length; i++)
@@ -169,6 +170,10 @@ namespace rogueLike
             {
                 if (updateRate % 20 == 0)
                     a.ChasePlayer(currentPlayer.GetPos(), myWorld);
+                if(updateRate % 50 == 0)
+                {
+                    a.fireArrow(myWorld);
+                }
             }
         }
 

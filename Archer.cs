@@ -14,6 +14,7 @@ namespace rogueLike
         private bool down = false;
         private bool right = false;
         private bool left = false;
+        private Arrow arrow;
 
         public Archer(Vector2 spawnPos) : base(spawnPos)
         {
@@ -22,23 +23,28 @@ namespace rogueLike
             SetViewDistance(8);
         }
 
-        private void fireArrow()
+        public void DrawArrow()
+        {
+            arrow.Draw();
+        }
+
+        public void fireArrow(World myWorld)
         {
             if (up)
             {
-                Arrow arrow = new Arrow(1, GetPos());
+                arrow = new Arrow(1, GetPos(), myWorld);
             }
             if (down)
             {
-                Arrow arrow = new Arrow(2, GetPos());
+                arrow = new Arrow(2, GetPos(), myWorld);
             }
             if (right)
             {
-                Arrow arrow = new Arrow(3, GetPos());
+                arrow = new Arrow(3, GetPos(), myWorld);
             }
             if (left)
             {
-                Arrow arrow = new Arrow(4, GetPos());
+                arrow = new Arrow(4, GetPos(), myWorld);
             }
         }
 

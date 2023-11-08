@@ -21,7 +21,9 @@ namespace rogueLike
             foreach (var a in archer)
             {
                 a.Draw();
+                a.DrawArrow();
             }
+
         }
 
         public static void DrawGameStats(int Y, int updateRate, int level, int life)
