@@ -25,6 +25,12 @@ namespace rogueLike
             }
         }
 
+        public static void DrawItems(Key key, Heart heart)
+        {
+            key.Draw();
+            heart.Draw();
+        }
+
         public static void DrawGameStats(int Y, int updateRate, int level, int life)
         {
             SetCursorPosition(0, Y + 1);
@@ -34,7 +40,11 @@ namespace rogueLike
         public static void DrawIntro()
         {
             Clear();
-            WriteLine("Hi, press any key to start ");
+            WriteLine("Нажмите на любую кнопку чтобы начать играть!\n\n" +
+                "Двигаться на стрелках\n" +
+                "Атака производится путем нажатия кнопок WASD\n\n" +
+                "Цель: найти ключ, и выйти из лабиринта\n" +
+                "(ключ выпадает после смерти моба с шансом 10%, или гарантированно после убийств последнего моба)");
             ReadKey();
             Clear();
         }

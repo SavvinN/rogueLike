@@ -17,7 +17,6 @@ namespace rogueLike
         private ConsoleColor color = ConsoleColor.DarkCyan;
         private int rate = 0;
         private bool isFligh = false;
-        private bool isWall = false;
         public Arrow(Vector2 pos, int direction)
         {
             isFligh = true;
@@ -86,10 +85,11 @@ namespace rogueLike
                 RemoveArrow(archPos);
         }
 
-        private void RemoveArrow(Vector2 archPos)
+        public void RemoveArrow(Vector2 archPos)
         {
             isVisible(false);
             SetPos(archPos);
+            rate = distance;
         }
 
         public Vector2 GetPos() => position.Pos;

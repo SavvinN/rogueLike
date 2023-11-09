@@ -37,6 +37,32 @@ namespace rogueLike
             frame = CreateFrame(_Grid);
         }
 
+        public List<Vector2> ItemSpawnMap()
+        {
+            List<Vector2> result = new List<Vector2>();
+            int wallCount = 0;
+            for (int y = 1; y < Cols - 1; y++)
+            {
+                for (int x = 1; x < Rows - 1; x++)
+                {
+                    if (_Grid[x - 1, y] == wall)
+                        wallCount++;
+                    if (_Grid[x + 1, y] == wall)
+                        wallCount++;
+                    if (_Grid[x, y - 1] == wall)
+                        wallCount++;
+                    if (_Grid[x, y + 1] == wall)
+                        wallCount++;
+                    if (wallCount == 3 && _Grid[x, y] == ground)
+                    {
+                        result.Add(new Vector2(x, y));
+                    }
+                    wallCount = 0;
+                }
+            }
+            return result;
+        }
+
         public String[,] GetGrid()
         {
             return _Grid;

@@ -18,6 +18,7 @@ namespace rogueLike
         private int viewDistance = 6;
         protected List<Point> path = new List<Point>();
         private bool isChasing = false;
+        protected bool isDead = false;
 
         public Enemy(Vector2 spawnPos)
         {
@@ -58,19 +59,22 @@ namespace rogueLike
 
         public void ChasePlayer(Vector2 playerPos, World myWorld)
         {
-            if (!isChasing)
+            if(!isDead)
             {
-                Patrol(myWorld);
-            }
+                if (!isChasing)
+                {
+                    Patrol(myWorld);
+                }
 
-            if (IsSeeThePlayer(playerPos, myWorld.GetGrid()))
-            {
-                FindPath(myWorld.GetGrid(), playerPos);
-                MoveToPlayer(playerPos, myWorld);
-                isChasing = true;
+                if (IsSeeThePlayer(playerPos, myWorld.GetGrid()))
+                {
+                    FindPath(myWorld.GetGrid(), playerPos);
+                    MoveToPlayer(playerPos, myWorld);
+                    isChasing = true;
+                }
+                else
+                    isChasing = false;
             }
-            else
-                isChasing = false;
         }
 
         public void FindPath(String[,] grid, Vector2 PlayerPos)
@@ -121,6 +125,13 @@ namespace rogueLike
                 k++;
             }
             return viewDistance > k;
+        }
+
+        public void Dead()
+        {
+            isDead = true;
+            SetMarker("");
+            SetPos(0, 0);
         }
 
         public bool IsTouchPlayer(Vector2 playerPos)

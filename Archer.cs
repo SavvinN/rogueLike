@@ -15,10 +15,11 @@ namespace rogueLike
         private bool right = false;
         private bool left = false;
         private bool isShooted = false;
-        Arrow arrow;
+        private Arrow arrow;
 
         public Archer(Vector2 spawnPos) : base(spawnPos)
         {
+            arrow = new Arrow(GetPos(), 1);
             SetColor(ConsoleColor.Blue);
             SetMarker("A");
             SetViewDistance(8);
@@ -30,23 +31,32 @@ namespace rogueLike
             arrow.Draw();
         }
 
-        public void FireArrow(int direction)
+        public void CreateArrow(int direction)
         {
             if(!isShooted)
                 arrow = new Arrow(GetPos(), direction);
             isShooted = true;
         }
 
-        private Vector2 GetArrowPos()
+        public Vector2 GetArrowPos()
         {
             if (arrow != null)
                 return arrow.GetPos();
             else 
                 return new Vector2(-1,-1);
         }
+        
+        public void RemoveArrow()
+        {
+            arrow.RemoveArrow(GetPos());
+        }
 
         public void UpdateArrowPos(World myWorld)
         {
+            if (isDead)
+            {
+                arrow.SetPos(0, 0);
+            }
             if (isShooted)
                 arrow.UpdatePos(GetPos(), myWorld);
             RefreshArrow();
@@ -77,7 +87,7 @@ namespace rogueLike
 
         public override void MoveToPlayer(Vector2 playerPos, World myWorld)
         {
-            if(path.Count > 5) 
+            if(path.Count > 4) 
             {
                 SetPos(path[1].X, path[1].Y);
             } 
@@ -85,16 +95,24 @@ namespace rogueLike
             {
                 Escape(playerPos, myWorld);
             }
-
-            if(up && (!left && !right))
-                FireArrow(1);
-            if (down && (!left && !right))
-                FireArrow(2);
-            if (left && (!up && !down))
-                FireArrow(3);
-            if (right && (!up && !down))
-                FireArrow(4);
+            FireArrow();
         }
+
+        private void FireArrow()
+        {
+            if(up)
+                CreateArrow(1);
+            else
+            if (down)
+                CreateArrow(2);
+            else
+            if (left)
+                CreateArrow(3);
+            else
+            if (right)
+                CreateArrow(4);
+    }
+
         private void Escape(Vector2 playerPos, World myWorld)
         {
             int X = (int)GetPos().X;
