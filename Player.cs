@@ -29,6 +29,8 @@ namespace rogueLike
         public void SetPos(Vector2 Pos) =>
             position.Pos = Pos;
 
+        public void SetColor(ConsoleColor color) => this.PlayerColor = color;
+
         public Vector2 GetPos()
         {
             return position.Pos;

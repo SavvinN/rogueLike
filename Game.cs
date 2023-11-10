@@ -22,9 +22,11 @@ namespace rogueLike
         private Archer[] archer;
         private Key _key = new Key();
         private Heart heart = new Heart();
+        private Sword sword = new Sword();
         private Vector2 HitPos;
-        private int updateRate = 0, level = 1, life = 3, cooldown = 0;
-        private int numberOfZomb = 1, numberOfArch = 1;
+        private int updateRate = 0, level = 1, life = 3, cooldown, tryCount = 0, cooldownTime = 40;
+        private int numberOfZomb, numberOfArch;
+        private float swordSpawnChance = 0.1f, heartSpawnChance = 0.3f;
         private bool isChasing = false, isHit = false, key = false;
         public Game()
         {
@@ -34,31 +36,46 @@ namespace rogueLike
 
         public void Start()
         {
+            cooldown = 0;
             numberOfArch = level / 2;
             numberOfZomb = level;
-            Drawer.DrawIntro();
-            _key.RemoveKey();
             SpawnEnemy();
-            if(level % 3 == 0)
-            {
-                heart.SpawnHeart(myWorld.ItemSpawnMap());
-            }
+            SpawnItems();
             Loop();
         }
+
+        private void SpawnItems()
+        {
+            Random rnd = new Random();
+            Drawer.DrawIntro();
+            _key.RemoveKey();
+
+            if (rnd.NextSingle() < swordSpawnChance)
+                sword.SpawnSword(myWorld.ItemSpawnMap());
+
+            if (rnd.NextSingle() < heartSpawnChance && tryCount < 1)
+                heart.SpawnHeart(myWorld.ItemSpawnMap());
+        }
+
 
         public void Loop()
         {
             while (PlayerStatus() == 0)
             {
+                SetCursorPosition(60, 20);
+                Write(tryCount);
                 Drawer.DrawFrame(myWorld, currentPlayer, zombie, archer);
+                Drawer.DrawItems(_key, heart, sword);
                 HandlePlayerInput();
                 HitTheEnemy();
                 UpdateEnemys();
-                Drawer.DrawItems(_key, heart);
-                Drawer.DrawGameStats(myWorld.GetGrid().GetLength(0) - 1,
+                Drawer.DrawGameStats(myWorld.GetGrid().GetLength(1) + 1,
                     updateRate,
                     level,
-                    life
+                    life,
+                    cooldown,
+                    _key.GetExist(),
+                    sword.GetExist()
                     );
                 updateRate++;
                 System.Threading.Thread.Sleep(20);
@@ -66,34 +83,64 @@ namespace rogueLike
             GameStatus();
         }
 
+        private void ChangePlayerColor(bool ready)
+        {
+            if(ready)
+            {
+                currentPlayer.SetColor(ConsoleColor.Green);
+            }
+            else
+            {
+                currentPlayer.SetColor(ConsoleColor.DarkGreen);
+            }
+        }
+
         public void DrawHit()
         {
-            cooldown++;
+            ChangePlayerColor(HitIsReady());
+            if (cooldown != 0)
+            cooldown--;
             if (myWorld.isPosWalkable((int)HitPos.X, (int)HitPos.Y))
             {
-                if (isHit)
-                {
-                    if (cooldown > 40)
-                    {
-                        SetCursorPosition((int)HitPos.X, (int)HitPos.Y);
-                        Write("/");
-                        isHit = false;
-                        cooldown = 0;
-                    }
-                    isHit = false;
-                }
-                else if (!isHit)
-                {
-                    HitPos = new Vector2(1, 1);
-                    SetCursorPosition(0, 0);
-                    Write("");
-                }
+                DrawAttack();
             }
             else
             {
                 isHit = false;
             }
         }
+
+        private void DrawAttack()
+        {
+            String hitMarker;
+            if (cooldownTime == sword.GetCooldownTime())
+            {
+                hitMarker = "/";
+            }
+            else
+                hitMarker = "*";
+            if (isHit)
+            {
+                if (HitIsReady())
+                {
+                    
+                    SetCursorPosition((int)HitPos.X, (int)HitPos.Y);
+                    Write(hitMarker);
+                    isHit = false;
+                    cooldown = cooldownTime;
+                }
+                isHit = false;
+            }
+            else
+            if (!isHit)
+            {
+                HitPos = new Vector2(0, 1);
+                SetCursorPosition(0, 0);
+                Write("");
+            }
+        }
+
+        public bool HitIsReady() => cooldown == 0 ? true : false;
 
 
         public void HitTheEnemy()
@@ -102,7 +149,7 @@ namespace rogueLike
 
             foreach (var z in zombie)
             {
-                if(HitPos == z.GetPos())
+                if (HitPos == z.GetPos())
                 {
                     numberOfZomb--;
                     DropKey(z);
@@ -112,7 +159,7 @@ namespace rogueLike
 
             foreach (var a in archer)
             {
-                if(HitPos == a.GetArrowPos())
+                if (HitPos == a.GetArrowPos() && sword.GetExist())
                 {
                     a.RemoveArrow();
                 }
@@ -169,14 +216,17 @@ namespace rogueLike
                 touched = zombie[i].IsTouchPlayer(currentPlayer.GetPos());
                 if (touched)
                 {
+                    tryCount++;
                     break;
                 }
             }
 
-            foreach(var a in archer)
+            foreach (var a in archer)
             {
-                if(a.ArrowHitPlayer(currentPlayer.GetPos()))
+                touched = a.IsTouchPlayer(currentPlayer.GetPos());
+                if (a.ArrowHitPlayer(currentPlayer.GetPos()))
                 {
+                    tryCount++;
                     touched = true;
                     break;
                 }
@@ -198,6 +248,7 @@ namespace rogueLike
             numberOfZomb = level;
             myWorld.RegenerateMaze(level);
             currentPlayer.SetPos(myWorld.GetPlayerSpawnPos());
+            tryCount = 0;
         }
 
         private List<int[]> GenerateSpawnMap()
@@ -250,7 +301,7 @@ namespace rogueLike
         {
             foreach (var z in zombie)
             {
-                if(updateRate % 15 == 0)
+                if (updateRate % 15 == 0)
                     z.ChasePlayer(currentPlayer.GetPos(), myWorld);
             }
             foreach (var a in archer)
@@ -261,7 +312,7 @@ namespace rogueLike
                 {
                     a.UpdateArrowPos(myWorld);
                 }
-                          
+
             }
         }
 
@@ -294,23 +345,27 @@ namespace rogueLike
 
                     case ConsoleKey.W:
                         if (myWorld.isPosWalkable(PlayerX, PlayerY - 1))
-                            HitPos = new Vector2(PlayerX , PlayerY - 1);
-                        isHit = true;
+                            HitPos = new Vector2(PlayerX, PlayerY - 1);
+                        if(HitIsReady())
+                            isHit = true;
                         break;
                     case ConsoleKey.S:
                         if (myWorld.isPosWalkable(PlayerX, PlayerY + 1))
                             HitPos = new Vector2(PlayerX, PlayerY + 1);
-                        isHit = true;
+                        if (HitIsReady())
+                            isHit = true;
                         break;
                     case ConsoleKey.A:
                         if (myWorld.isPosWalkable(PlayerX - 1, PlayerY))
                             HitPos = new Vector2(PlayerX - 1, PlayerY);
-                        isHit = true;
+                        if (HitIsReady())
+                            isHit = true;
                         break;
                     case ConsoleKey.D:
                         if (myWorld.isPosWalkable(PlayerX + 1, PlayerY))
                             HitPos = new Vector2(PlayerX + 1, PlayerY);
-                        isHit = true; ;
+                        if (HitIsReady())
+                            isHit = true; ;
                         break;
                     default:
                         break;
@@ -323,6 +378,11 @@ namespace rogueLike
         {
             heart.PickUp(currentPlayer.GetPos());
             _key.PickUp(currentPlayer.GetPos());
+            sword.PickUp(currentPlayer.GetPos());
+            if (sword.GetExist() && cooldown != sword.GetCooldownTime())
+            {
+                cooldownTime = sword.GetCooldownTime();
+            }
             if (heart.GetExist())
             {
                 life++;

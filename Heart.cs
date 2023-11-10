@@ -44,9 +44,12 @@ namespace rogueLike
 
         public void SpawnHeart(List<Vector2> map)
         {
-            Random rnd = new Random();
-            Marker = "♥";
-            _position.Pos = map[rnd.Next(map.Count - 1)];
+            if(!isPickUp)
+            {
+                Random rnd = new Random();
+                Marker = "♥";
+                _position.Pos = map[rnd.Next(map.Count - 1)];
+            }
         }
 
         public bool GetExist() => isPickUp;

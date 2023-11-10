@@ -25,26 +25,55 @@ namespace rogueLike
             }
         }
 
-        public static void DrawItems(Key key, Heart heart)
+        public static void DrawItems(Key key, Heart heart, Sword sword)
         {
             key.Draw();
             heart.Draw();
+            sword.Draw();
         }
 
-        public static void DrawGameStats(int Y, int updateRate, int level, int life)
+        public static void DrawGameStats(int X, int updateRate, int level, int life, int cooldown, bool key, bool sword)
         {
-            SetCursorPosition(0, Y + 1);
-            Write($"UpdateRate: {updateRate} LVL: {level} Life: {life}");
+            SetCursorPosition(X, 0);
+            string k;
+            if(key)
+            {
+                k = "найден";
+            }
+            else
+            {
+                k = "не найден";
+            }
+            string s;
+            if (sword)
+            {
+                s = "подобран";
+            }
+            else
+            {
+                s = "не подобран";
+            }
+            WriteLine($"UpdateRate: {updateRate}    ");
+            SetCursorPosition(X, 1);
+            WriteLine($"LVL: {level} Life: {life}    ");
+            SetCursorPosition(X, 2);
+            WriteLine($"Attack cooldown: {cooldown}  ");
+            SetCursorPosition(X, 3);
+            WriteLine($"Ключ: {k}      ");
+            SetCursorPosition(X, 4);
+            WriteLine($"Меч: {s}      ");
         }
 
         public static void DrawIntro()
         {
             Clear();
             WriteLine("Нажмите на любую кнопку чтобы начать играть!\n\n" +
-                "Двигаться на стрелках\n" +
+                "Двигаться можно на стрелках\n" +
                 "Атака производится путем нажатия кнопок WASD\n\n" +
                 "Цель: найти ключ, и выйти из лабиринта\n" +
-                "(ключ выпадает после смерти моба с шансом 10%, или гарантированно после убийств последнего моба)");
+                "Подсказки:\n" +
+                "Ключ выпадает после смерти моба с шансом 10%, или гарантированно после убийств последнего моба\n" +
+                "Меч может заблокировать стрелу, также меч уменьшает кд удара");
             ReadKey();
             Clear();
         }

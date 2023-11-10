@@ -61,6 +61,7 @@ namespace rogueLike
         {
             if(!isDead)
             {
+                FindPath(myWorld.GetGrid(), playerPos);
                 if (!isChasing)
                 {
                     Patrol(myWorld);
@@ -68,7 +69,6 @@ namespace rogueLike
 
                 if (IsSeeThePlayer(playerPos, myWorld.GetGrid()))
                 {
-                    FindPath(myWorld.GetGrid(), playerPos);
                     MoveToPlayer(playerPos, myWorld);
                     isChasing = true;
                 }

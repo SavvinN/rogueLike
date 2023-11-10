@@ -20,6 +20,7 @@ namespace rogueLike
 
         public override void MoveToPlayer(Vector2 playerPos, World myWorld)
         {
+            if(path.Count != 1)
              SetPos(path[1].X, path[1].Y);
         }
 

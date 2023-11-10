@@ -12,7 +12,7 @@ namespace rogueLike
     internal class Arrow
     {
         private int _direction, distance = 8;
-        private String mark = "*";
+        private String mark;
         private Position position = new Position();
         private ConsoleColor color = ConsoleColor.DarkCyan;
         private int rate = 0;
@@ -20,7 +20,7 @@ namespace rogueLike
         public Arrow(Vector2 pos, int direction)
         {
             isFligh = true;
-            mark = "*";
+            mark = "+";
             position.Pos = pos;
             SetDirection(direction);
         }
@@ -65,7 +65,7 @@ namespace rogueLike
         }
 
         public void isVisible(bool visible) => 
-            mark = !visible ? "" : "*";
+            mark = !visible ? "" : "+";
 
         public void Draw()
         {

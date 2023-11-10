@@ -8,20 +8,18 @@ using static System.Console;
 
 namespace rogueLike
 {
-    internal class Key : Item
+    internal class Sword : Item
     {
         private Position _position;
         private bool isPickUp = false;
         private String Marker;
-        private ConsoleColor Color = ConsoleColor.Yellow;
+        private ConsoleColor Color = ConsoleColor.Cyan;
+        private int cooldownTime = 30;
 
-        public Key()
+        public Sword()
         {
-            _position.Pos = new Vector2(0, 0);
             Marker = "";
         }
-
-
         public void Action()
         {
             isPickUp = true;
@@ -45,20 +43,18 @@ namespace rogueLike
             }
         }
 
-        public void SpawnKey(Vector2 pos)
+        public void SpawnSword(List<Vector2> map)
         {
-            _position.Pos = new Vector2(pos.Y, pos.X);
-            Marker = "T";
-        }
-        public void RemoveKey()
-        {
-            _position.Pos = new Vector2(0, 0);
-            Marker = "";
-            isPickUp = false;
+            if (!isPickUp)
+            {
+                Random rnd = new Random();
+                Marker = "!";
+                _position.Pos = map[rnd.Next(map.Count - 1)];
+            }
         }
 
+        public int GetCooldownTime() => cooldownTime;
         public bool GetExist() => isPickUp;
-
         public void SetExist(bool pickUp) => isPickUp = pickUp;
     }
 }
