@@ -1,14 +1,16 @@
-﻿using System.Numerics;
-
+﻿
 namespace rogueLike
 {
-    struct Position()
+    enum Direction : byte
     {
-        public Vector2 Pos { get; set; }
+        Up = 0,
+        Left = 1,
+        Right = 2,
+        Down = 3,
+        None = 4,
     }
     internal class Program
     {
-        
         static void Main(string[] args)
         {
             Console.CursorVisible = false;

@@ -1,67 +1,56 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using System.Numerics;
+using System.Timers;
+using rogueLike.GameObjects;
+using rogueLike.GameObjects.Enemys;
+using rogueLike.GameObjects.Items;
 using static System.Console;
 
 namespace rogueLike
 {
     internal class Drawer
     {
-        public static void DrawFrame(World myWorld, Player currentPlayer, Zombie[] zombie, Archer[] archer)
+        private static void DrawObject(GameObject gameObject)
         {
-            myWorld.Draw();
-            currentPlayer.Draw();
+            ForegroundColor = gameObject.GetColor();
+            Vector2 pos = gameObject.GetPos();
+            SetCursorPosition((int)pos.Y, (int)pos.X);
+            Write(gameObject.GetSymbol());
+            ResetColor();
+        }
+        public static void DrawFrame(String frame, Player currentPlayer, Zombie[] zombie, Archer[] archer)
+        {
+            SetCursorPosition(0, 0);
+            Write(frame);
+            foreach(var z in zombie)
+            {
+                DrawObject(z);
+            }
             foreach (var a in archer)
             {
-                a.Draw();
-                a.DrawArrow();
+                DrawObject(a);
             }
-            foreach (var z in zombie)
-            {
-                z.Draw();
-            }
+            DrawObject(currentPlayer);
         }
 
-        public static void DrawItems(Key key, Heart heart, Sword sword)
-        {
-            key.Draw();
-            heart.Draw();
-            sword.Draw();
-        }
-
-        public static void DrawGameStats(int X, int updateRate, int level, int life, int cooldown, bool key, bool sword)
+        public static void DrawGameStats(int X, int frameCount, int stamina)
         {
             SetCursorPosition(X, 0);
-            string k;
-            if(key)
+            WriteLine($"Frame: {frameCount}    ");
+
+            string staminaIndicator = "";
+            for(int i = 0; i < stamina / 10; i++)
             {
-                k = "найден";
+                staminaIndicator += "|";
             }
-            else
-            {
-                k = "не найден";
-            }
-            string s;
-            if (sword)
-            {
-                s = "подобран";
-            }
-            else
-            {
-                s = "не подобран";
-            }
-            WriteLine($"UpdateRate: {updateRate}    ");
             SetCursorPosition(X, 1);
-            WriteLine($"LVL: {level} Life: {life}    ");
-            SetCursorPosition(X, 2);
-            WriteLine($"Attack cooldown: {cooldown}  ");
-            SetCursorPosition(X, 3);
-            WriteLine($"Ключ: {k}      ");
-            SetCursorPosition(X, 4);
-            WriteLine($"Меч: {s}      ");
+            WriteLine($"stamina: {staminaIndicator}                  ");
+        }
+
+        public static void DrawAttack(Vector2 pos)
+        {
+            SetCursorPosition((int)pos.Y, (int)pos.X);
+            Write('*');
         }
 
         public static void DrawIntro()
