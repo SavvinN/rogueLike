@@ -1,60 +1,58 @@
-﻿using System.Numerics;
+﻿using rogueLike.GameObjects.MazeObjects;
+using System.Numerics;
 
 
 namespace rogueLike.GameObjects
 {
     internal class Arrow : GameObject
     {
-        private int _direction, 
-                    _distance = 8;
-        private bool _isFligh = false;
-        public Arrow(Vector2 pos, int direction)
+        private Direction _direction;
+        private int _distance = 5;
+        GameObject[,] _grid;
+        public Arrow(Vector2 pos, Direction direction, GameObject[,] grid)
         {
             Walkable = true;
             SetColor(ConsoleColor.Cyan);
             SetSymbol('+');
             SetPos(pos);
-            SetDirection(direction);
-        }
-
-        public void SetDirection(int direction)
-        {
             _direction = direction;
+            _grid = grid;
+            Move();
         }
 
-        public void Move(int direction, GameObject[,] grid)
+        public void Move()
         {
-           int x = (int)GetPos().X, 
-               y = (int)GetPos().Y;
-           switch(direction)
+            var movingPos = Vector2.Zero;
+
+            switch (_direction)
             {
-                case (int)Direction.Up:
-                    if (grid[y - 1,x].IsWalkable)
-                        SetPos(new Vector2(y - 1, x));
+                case Direction.Up:
+                    movingPos = (Position - Vector2.UnitX);
                     break;
-                case (int)Direction.Down:
-                    if (grid[y + 1, x].IsWalkable)
-                        SetPos(new Vector2(y + 1, x));
+                case Direction.Down:
+                    movingPos = (Position + Vector2.UnitX);
                     break;
-                case (int)Direction.Left:
-                    if (grid[y, x - 1].IsWalkable)
-                        SetPos(new Vector2(y, x - 1));
+                case Direction.Right:
+                    movingPos = (Position + Vector2.UnitY);
                     break;
-                case (int)Direction.Right:
-                    if (grid[y, x + 1].IsWalkable)
-                        SetPos(new Vector2(y, x + 1));
+                case Direction.Left:
+                    movingPos = (Position - Vector2.UnitY);
                     break;
-                default:
-                    throw new NotImplementedException();
             }
+
+            if (_grid[(int)movingPos.X, (int)movingPos.Y].GetType() != new Wall().GetType() && !(_distance < 0))
+            {
+                SetPos(movingPos);
+                _distance--;
+            }
+            else
+                RemoveArrow();
         }
 
-        public void RemoveArrow(int distance)
+        public void RemoveArrow()
         {
-            if(distance == _distance)
-            {
-
-            }
+            SetSymbol(new char());
+            SetPos(Vector2.Zero);
         }
     }
 }

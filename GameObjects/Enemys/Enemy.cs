@@ -7,9 +7,7 @@ namespace rogueLike.GameObjects.Enemys
     internal class Enemy : Creature
     {
         private int viewDistance = 6;
-        protected List<Vector2> path = new List<Vector2>();
-        private bool isChasing = false;
-        protected bool isDead = false;
+        public List<Vector2> path = new List<Vector2>();
 
         public Enemy(Vector2 spawnPos)
         {
@@ -20,44 +18,66 @@ namespace rogueLike.GameObjects.Enemys
 
         public void Spawn(Vector2 spawnPos) => SetPos(spawnPos);
 
-        public void MoveToPlayer(Vector2 playerPos) => SetPos(new Vector2(path[1].X, path[1].Y));
-
-        public void ChasePlayer(Vector2 playerPos, GameObject[,] grid)
-        {
-
-        }
-
         public void Patrol(GameObject[,] grid)
         {
 
         }
-        public bool SeePlayer(Vector2 playerPosition, GameObject[,] grid)
+
+        public void BackToRoom(GameObject[,] grid)
         {
-            if (Vector2.Distance(GetPos(), playerPosition) < viewDistance)
+
+        }
+
+        public bool FindPlayer(Vector2 playerPosition, GameObject[,] grid)
+        {
+            if (Vector2.Distance(GetPos(), playerPosition) < (float)viewDistance)
             {
-                Vector2 viewPoint = GetPos();
-                while (viewPoint != playerPosition)
+                List<Vector2> seePath = GetPathTo(playerPosition);
+
+                foreach (var pos in seePath)
                 {
+                    if (World.CompareObjects(grid[(int)pos.X, (int)pos.Y], new Wall()))
+                        return false;
+                }
+                path = GetPathTo(playerPosition);
+                return true;
+            }
+            return false;
+        }
+
+        private List<Vector2> GetPathTo(Vector2 playerPosition)
+        {
+            List<Vector2> path = new List<Vector2>();
+            Vector2 viewPoint = GetPos();
+            path.Add(viewPoint);
+            while (viewPoint != playerPosition)
+            {
+                float temp = viewPoint.X;
                     viewPoint.X += (viewPoint.X > playerPosition.X)
                                     ? -1
                                     : (viewPoint.X < playerPosition.X)
                                         ? 1
                                         : 0;
+
+                if (temp == viewPoint.X)
                     viewPoint.Y += (viewPoint.Y > playerPosition.Y)
-                                    ? 1
+                                    ? -1
                                     : (viewPoint.Y < playerPosition.Y)
-                                        ? -1
+                                        ? 1
                                         : 0;
-                    if (grid[(int)viewPoint.Y, (int)viewPoint.X] == new Wall())
-                        return true;
-                }
+                path.Add(viewPoint);
             }
-            return false;
+            return path;
         }
 
-        public void Dead()
+        public Vector2 GetNextStep(Vector2 playerPosition)
         {
-
+            if (path.Count > 1)
+            {
+                return path[1];
+            }
+            else
+                return Position;
         }
 
     }

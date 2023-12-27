@@ -9,6 +9,7 @@ namespace rogueLike
         Down = 3,
         None = 4,
     }
+
     internal class Program
     {
         static void Main(string[] args)

@@ -5,9 +5,12 @@ namespace rogueLike.GameObjects
     internal class Player : Creature
     {
         private const char mainSymbol = 'o';
+     
         public Player(Vector2 pos)
         {
-            maxStamina = 120;
+            moveCooldown = base.moveCooldown / 2;
+            attackCooldown = base.attackCooldown / 2;
+
             Walkable = false;
             SetPos(pos);
             SetSymbol(mainSymbol);

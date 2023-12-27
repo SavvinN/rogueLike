@@ -4,11 +4,9 @@ namespace rogueLike.GameObjects.Enemys
 {
     internal class Archer : Enemy
     {
-        private bool isShoot = false;
-        private int fireCooldown = 60;
-
         public Archer(Vector2 spawnPos) : base(spawnPos)
         {
+            attackCooldown = 50;
             SetPos(spawnPos);
             SetColor(ConsoleColor.Blue);
             SetSymbol('A');
@@ -17,27 +15,31 @@ namespace rogueLike.GameObjects.Enemys
 
         private Direction GetPlayerDirection(Vector2 PlayerPos)
         {
-            Direction playerDirection;
-            if(GetPos() == PlayerPos)
+            Direction playerDirection = Direction.None;
+            if(PlayerPos.X == Position.X)
             {
-                playerDirection = Direction.None;
+                if (PlayerPos.Y < Position.Y)
+                {
+                    playerDirection = Direction.Down;
+                }
+                else if (PlayerPos.Y > Position.Y)
+                {
+                    playerDirection = Direction.Up;
+                }
             }
-            else
+            else if(PlayerPos.Y == Position.Y)
             {
-                playerDirection = (GetPos().X < PlayerPos.X) ?
-                                  Direction.Right
-                                  : Direction.Left;
-
-                playerDirection = (GetPos().Y > PlayerPos.Y) ?
-                                  Direction.Down
-                                  : Direction.Up;
+                if (PlayerPos.X < Position.X)
+                {
+                    playerDirection = Direction.Left;
+                }
+                else if (PlayerPos.X > Position.X)
+                {
+                    playerDirection = Direction.Right;
+                }
             }
             return playerDirection;
         }
 
-        private void Escape(Direction playerDirection, GameObject[,] grid)
-        {
-
-        }
     }
 }

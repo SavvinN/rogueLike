@@ -12,13 +12,15 @@ namespace rogueLike
         private Room room = new();
         private ExitDoor exitDoor = new();
         private GameObject[,] _gameObjectsGrid;
+        private GameObject[,] _gameObjGridCopy;
         private Player player;
         private Zombie[] zombie;
         private Archer[] archer;
+        private List<Arrow> arrow = new List<Arrow>();
         private List<Vector2> _enemySpawnMap;
         private List<Vector2> _itemSpawnMap;
         private char[,] _grid;
-        private String worldFrame = "";
+        private String worldFrame = String.Empty;
         private int Rows = 0,
                     Cols = 0;
         private int sizeX = 20,
@@ -36,7 +38,7 @@ namespace rogueLike
         {
             _level = level;
             enemyCount = (_level / 2) + _level;
-            IncreaseWorldSize();
+            SetWorldSize();
             maze = new Maze(sizeY,
                             sizeX,
                             wall.GetSymbol(),
@@ -46,14 +48,28 @@ namespace rogueLike
             _grid = maze.GetGrid();
             (Rows, Cols) = maze.GetSize();
             _gameObjectsGrid = new GameObject[Rows, Cols];
+            _gameObjGridCopy = new GameObject[Rows, Cols];  
             CreateExitDoor();
             worldFrame = CreateWorldFrame();
             constructObjectsGrid();
+            for (int y = 0; y < Rows; y++)
+                for (int x = 0; x < Cols; x++)
+                {
+                    _gameObjGridCopy[y,x] = _gameObjectsGrid[y, x];
+                }
             _enemySpawnMap = GenerateEnemySpawnMap();
             _itemSpawnMap = GenerateItemSpawnMap();
             SpawnEnemy();
             SpawnPlayer();
         }
+
+        public void AddArrow(Arrow a) => arrow.Add(a);
+        public void RemoveArrow(Arrow a)
+        {
+                arrow.Remove(a);
+        }
+
+        public List<Arrow> GetAllArrows() => arrow; 
 
         private void constructObjectsGrid()
         {
@@ -77,12 +93,20 @@ namespace rogueLike
             }
         }
 
-        private void SetObject(int y, int x, GameObject obj)
+        public void SetObject(int y, int x, GameObject obj)
         {
             _gameObjectsGrid[y, x] = obj;
             _gameObjectsGrid[y, x].SetPos(new Vector2(y, x));
         }
+        public void SetObject(Vector2 pos, GameObject obj)
+        {
+            int x = (int)pos.Y;
+            int y = (int)pos.X;
+            _gameObjectsGrid[y, x] = obj;
+            _gameObjectsGrid[y, x].SetPos(new Vector2(y, x));
+        }
 
+        public GameObject GetObjectAt(Vector2 pos) => _gameObjGridCopy[(int)pos.X, (int)pos.Y];
         private void CreateExitDoor()
         {
             Random rnd = Random.Shared;
@@ -97,8 +121,8 @@ namespace rogueLike
         {
             if(_enemySpawnMap.Count != 0)
             {
-                zombie = new Zombie[enemyCount];
-                archer = new Archer[enemyCount];
+                zombie = new Zombie[0];
+                archer = new Archer[1];
                 Random rnd = Random.Shared;
                 for (int i = 0; i < zombie.Length; i++)
                 {
@@ -127,6 +151,8 @@ namespace rogueLike
                        ? new Player(new Vector2(1, Cols - 3)) 
                        : new Player(new Vector2(1, Cols - 2));
             }
+
+            SetObject((int)player.Position.X, (int)player.Position.Y, player);
         }
 
         public List<Vector2> GenerateItemSpawnMap()
@@ -177,10 +203,12 @@ namespace rogueLike
 
         public String GetFrame() => worldFrame;
 
-        private void IncreaseWorldSize()
+        private void SetWorldSize()
         {
-            sizeX += _level * 2;
-            sizeY++;
+            int defaultSizeX = 20;
+            int defaultSizeY = 18;
+            sizeX = _level * 2 + defaultSizeX;
+            sizeY = defaultSizeY + _level;
         }
 
         private string CreateWorldFrame()
@@ -197,13 +225,25 @@ namespace rogueLike
             return frame;
         }
 
-        public bool CompareObjects(GameObject obj1, GameObject obj2) => obj1.GetSymbol() == obj2.GetSymbol();
+        public static bool CompareObjects(GameObject obj1, GameObject obj2) => obj1.GetType().Equals(obj2.GetType());
         public bool IsPosWalkable(Vector2 pos) => _gameObjectsGrid[(int)pos.X, (int)pos.Y].IsWalkable;
+        public GameObject GetElementAt(Vector2 Pos) => _gameObjGridCopy[(int)Pos.X, (int)Pos.Y];
+        public GameObject GetObject(Vector2 pos) => _gameObjectsGrid[(int)pos.X, (int)pos.Y];
+        public List<Creature> GetAllCreatures()
+        {
+            var list = new List<Creature>();
+            list.Add(player);
+            foreach(var z in zombie)
+            {
+                list.Add(z);
+            }
+            foreach (var a in zombie)
+            {
+                list.Add(a);
+            }
 
-        public bool IsPosWall(Vector2 pos) => GetElementAt(pos).GetSymbol() == wall.GetSymbol();
-
-        public GameObject GetElementAt(Vector2 Pos) => _gameObjectsGrid[(int)Pos.X, (int)Pos.Y];
-
+            return list;
+        }
         public Player GetPlayer() => player;
         public Zombie[] GetZombies() => zombie;
         public Archer[] GetArchers() => archer;

@@ -1,6 +1,8 @@
 ﻿using rogueLike.GameObjects;
+using rogueLike.GameObjects.Enemys;
 using rogueLike.GameObjects.Items;
 using rogueLike.GameObjects.MazeObjects;
+using System;
 using System.Numerics;
 using static System.Console;
 
@@ -13,6 +15,7 @@ namespace rogueLike
                     life = 3;
         private World myWorld;
         private bool GameStatus = false;
+
         public Game()
         {
             myWorld = new World(level);
@@ -26,22 +29,61 @@ namespace rogueLike
 
         public void Loop()
         {
-            while(GameStatus)
+            while (GameStatus)
             {
-                Drawer.DrawFrame(myWorld.GetFrame(), myWorld.GetPlayer(), myWorld.GetZombies(), myWorld.GetArchers());
-                Drawer.DrawGameStats(40, FrameCount, myWorld.GetPlayer().currentStamina);
-                HandelPlayer(myWorld.GetPlayer());
-                GameStatus = !isGoal();
+                Drawer.DrawFrame(myWorld.GetFrame(), 
+                    myWorld.GetPlayer(), 
+                    myWorld.GetZombies(), 
+                    myWorld.GetArchers(),
+                    myWorld.GetAllArrows());
+                Drawer.DrawGameStats(40, FrameCount);
+                HandleEntityAction();
+                GameStatus = !IsGoal();
                 FrameCount++;
                 System.Threading.Thread.Sleep(1);
             }
             LevelUp();
         }
 
-        private bool isGoal()
+        void HandleEntityAction()
+        {
+            HandlePlayerInput(myWorld.GetPlayer());
+            HandleEnemyAction(myWorld.GetZombies(), myWorld.GetArchers());
+
+
+            var arrows = myWorld.GetAllArrows();
+
+            if (arrows is not null && FrameCount % 15 == 0)
+            foreach(var arrow in arrows)
+            {
+                if(arrow.Position != Vector2.Zero)
+                arrow.Move();
+                TryToHit(arrow.Position, arrow.GetSymbol());
+            }
+
+            if (arrows is not null)
+            for (int i = 0; i < arrows.Count; i++)
+            {
+                    if (arrows[i].Position == Vector2.Zero)
+                    myWorld.RemoveArrow(arrows[i]);
+            }
+
+        }
+
+        public void RestartLevel()
+        {
+            life--;
+            myWorld.GenerateMaze(level);
+            myWorld.GetAllArrows().Clear(); 
+            Start();
+        }
+
+        private bool IsGoal()
         {
             GameObject elementAtPlayerPos = myWorld.GetElementAt(myWorld.GetPlayer().GetPos());
-            return myWorld.CompareObjects(elementAtPlayerPos, new ExitDoor());
+            if (myWorld.GetPlayer().Position == Vector2.Zero || life > 0)
+                RestartLevel();
+            return World.CompareObjects(elementAtPlayerPos, new ExitDoor());
         }
 
         private void LevelUp()
@@ -51,70 +93,200 @@ namespace rogueLike
             Start();
         }
 
-        public void HandelPlayer(Player currentPlayer)
+        public void HandlePlayerInput(Player currentPlayer)
         {
-            currentPlayer.RecoverStamina();
-            Vector2 attackPos = Vector2.Zero;
             while (KeyAvailable)
             {
-                int PlayerX = (int)currentPlayer.GetPos().Y;
-                int PlayerY = (int)currentPlayer.GetPos().X;
                 ConsoleKeyInfo keyInfo = ReadKey(true);
                 ConsoleKey key = keyInfo.Key;
-                HandleMoveInput(currentPlayer, key, PlayerX, PlayerY);
-                attackPos = HandleAttackInput(currentPlayer, key, PlayerX, PlayerY);
-
-                if(attackPos !=  Vector2.Zero)
-                Drawer.DrawAttack(attackPos);
+                HandleMoveInput(currentPlayer, key);
+                HandleAttackInput(currentPlayer, key);
             }
         }
 
-        public void HandleMoveInput(Player currentPlayer, ConsoleKey key, int PlayerX, int PlayerY)
+        public void HandleMoveInput(Player currentPlayer, ConsoleKey key)
         {
-            switch (key)
+            if (FrameCount - currentPlayer.lastActionFrame > currentPlayer.MoveCooldown)
             {
-                case ConsoleKey.UpArrow:
-                    if (myWorld.IsPosWalkable(new(PlayerY - 1, PlayerX)))
-                        currentPlayer.Move(Direction.Up);
-                    break;
-                case ConsoleKey.DownArrow:
-                    if (myWorld.IsPosWalkable(new(PlayerY + 1, PlayerX)))
-                        currentPlayer.Move(Direction.Down);
-                    break;
-                case ConsoleKey.RightArrow:
-                    if (myWorld.IsPosWalkable(new(PlayerY, PlayerX + 1)))
-                        currentPlayer.Move(Direction.Right);
-                    break;
-                case ConsoleKey.LeftArrow:
-                    if (myWorld.IsPosWalkable(new(PlayerY, PlayerX - 1)))
-                        currentPlayer.Move(Direction.Left);
-                    break;
+                var temp = currentPlayer.Position;
+
+                switch (key)
+                {
+                    case ConsoleKey.UpArrow:
+                        currentPlayer.Move(Direction.Up, myWorld);
+                        break;
+                    case ConsoleKey.DownArrow:
+                        currentPlayer.Move(Direction.Down, myWorld);
+                        break;
+                    case ConsoleKey.RightArrow:
+                        currentPlayer.Move(Direction.Right, myWorld);
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        currentPlayer.Move(Direction.Left, myWorld);
+                        break;
+                }
+
+                if (temp != currentPlayer.Position)
+                    currentPlayer.lastActionFrame = FrameCount;
             }
         }
 
-        public Vector2 HandleAttackInput(Player currentPlayer, ConsoleKey key, int PlayerX, int PlayerY)
+        public void HandleAttackInput(Player currentPlayer, ConsoleKey key)
         {
-            switch (key)
+            Vector2 attackPos = Vector2.Zero;
+            if (FrameCount - currentPlayer.lastActionFrame > currentPlayer.AttackCooldown)
             {
-                case ConsoleKey.W:
-                    if (!myWorld.IsPosWall(new(PlayerY - 1, PlayerX)))
-                        return currentPlayer.Attack(Direction.Up);
-                    break;
-                case ConsoleKey.S:
-                    if (!myWorld.IsPosWall(new(PlayerY + 1, PlayerX)))
-                        return currentPlayer.Attack(Direction.Down);
-                    break;
-                case ConsoleKey.D:
-                    if (!myWorld.IsPosWall(new(PlayerY, PlayerX + 1)))
-                        return currentPlayer.Attack(Direction.Right);
-                    break;
-                case ConsoleKey.A:
-                    if (!myWorld.IsPosWall(new(PlayerY, PlayerX - 1)))
-                        return currentPlayer.Attack(Direction.Left);
-                    break;
+                switch (key)
+                {
+                    case ConsoleKey.W:
+                        attackPos = currentPlayer.Attack(Direction.Up, myWorld.GetGameObjectGrid());
+                        break;
+                    case ConsoleKey.S:
+                        attackPos = currentPlayer.Attack(Direction.Down, myWorld.GetGameObjectGrid());
+                        break;
+                    case ConsoleKey.D:
+                        attackPos = currentPlayer.Attack(Direction.Right, myWorld.GetGameObjectGrid());
+                        break;
+                    case ConsoleKey.A:
+                        attackPos = currentPlayer.Attack(Direction.Left, myWorld.GetGameObjectGrid());
+                        break;
+                }
+                currentPlayer.lastActionFrame = FrameCount;
+                TryToHit(attackPos, '*');
             }
-            return Vector2.Zero;
         }
+
+        public void HandleEnemyAction(Zombie[] zombs, Archer[] archs)
+        {
+            foreach (var zombie in zombs)
+            {
+                zombie.FindPlayer(myWorld.GetPlayer().Position, myWorld.GetGameObjectGrid());
+                EnemyMovement(zombie);
+                MeleeEnemyAttackment(zombie);
+            }
+
+            foreach (var archer in archs)
+            {
+                archer.FindPlayer(myWorld.GetPlayer().Position, myWorld.GetGameObjectGrid());
+                if(!(myWorld.GetPlayer().Position.X == archer.Position.X)
+                    && !(myWorld.GetPlayer().Position.Y == archer.Position.Y))
+                EnemyMovement(archer);
+
+                if(EnemyObsPlayer(archer) != Direction.None)
+                RangeEnemyAttackment(archer);
+            }
+        }
+
+        public Direction EnemyObsPlayer(Enemy enemy)
+        {
+            var nextStep = enemy.GetNextStep(myWorld.GetPlayer().Position) - enemy.Position;
+
+            if (nextStep == Vector2.UnitX)
+                return Direction.Down;
+            else
+            if (nextStep == -Vector2.UnitX)
+                return Direction.Up;
+            else
+            if (nextStep == Vector2.UnitY)
+                return Direction.Right;
+            else
+            if (nextStep == -Vector2.UnitY)
+                return Direction.Left;
+            else
+                return Direction.None;
+        }
+
+        public void EnemyMovement(Enemy enemy)
+        {
+            var direct = EnemyObsPlayer(enemy);
+
+            if (FrameCount - enemy.lastActionFrame > enemy.MoveCooldown && direct != Direction.None)
+            {
+                var temp = enemy.Position;
+                switch (direct)
+                {
+                    case Direction.Left:
+                        enemy.Move(direct, myWorld);
+                        break;
+                    case Direction.Right:
+                        enemy.Move(direct, myWorld);
+                        break;
+                    case Direction.Down:
+                        enemy.Move(direct, myWorld);
+                        break;
+                    case Direction.Up:
+                        enemy.Move(direct, myWorld);
+                        break;
+                }
+
+                if (temp != enemy.Position)
+                    enemy.lastActionFrame = FrameCount;
+            }
+        }
+
+        private void RangeEnemyAttackment(Archer archer)
+        {
+            var direct = Direction.None;
+            var playerPos = myWorld.GetPlayer().Position;
+
+            if(archer.Position.X > playerPos.X && archer.Position.Y == playerPos.Y)
+                direct = Direction.Up;
+            else
+            if (archer.Position.X < playerPos.X && archer.Position.Y == playerPos.Y)
+                direct = Direction.Down;
+            else
+            if (archer.Position.Y < playerPos.Y && archer.Position.X == playerPos.X)
+                direct = Direction.Right;
+            else
+            if (archer.Position.Y > playerPos.Y && archer.Position.X == playerPos.X)
+                direct = Direction.Left;
+
+            if (FrameCount - archer.lastActionFrame > archer.AttackCooldown && direct != Direction.None)
+            {
+                var Arrow = new Arrow(archer.GetPos(), direct, myWorld.GetGameObjectGrid());
+                myWorld.AddArrow(Arrow);
+                archer.lastActionFrame = FrameCount;
+            }
+        }
+
+        public void MeleeEnemyAttackment(Enemy enemy)
+        {
+            var playerPos = myWorld.GetPlayer().Position;
+            var attackPos = Vector2.Zero;
+            if (FrameCount - enemy.lastActionFrame > enemy.AttackCooldown)
+            {
+                if (enemy.Position + Vector2.UnitX == playerPos)
+                    attackPos = enemy.Attack(Direction.Down, myWorld.GetGameObjectGrid());
+                else
+                if (enemy.Position - Vector2.UnitX == playerPos)
+                    attackPos = enemy.Attack(Direction.Up, myWorld.GetGameObjectGrid());
+                else
+                if (enemy.Position + Vector2.UnitY == playerPos)
+                    attackPos = enemy.Attack(Direction.Right, myWorld.GetGameObjectGrid());
+                else
+                if (enemy.Position - Vector2.UnitY == playerPos)
+                    attackPos = enemy.Attack(Direction.Left, myWorld.GetGameObjectGrid());
+
+                enemy.lastActionFrame = FrameCount;
+                if (attackPos != Vector2.Zero)
+                    TryToHit(attackPos, '*');
+            }
+        }
+
+        public void TryToHit(Vector2 attackPos, Char hitSymbol)
+        {
+            GameObject objectAt = myWorld.GetGameObjectGrid()[(int)attackPos.X, (int)attackPos.Y];
+            Creature? attackedObj = objectAt as Creature;
+
+            if (attackPos != Vector2.Zero)
+                Drawer.DrawAttack(attackPos, hitSymbol);
+
+            if (attackedObj != null)
+            {
+                attackedObj.Dead(myWorld);
+            }
+        }
+
     }
 }
 

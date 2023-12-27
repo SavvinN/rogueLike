@@ -1,25 +1,28 @@
-﻿using System.Numerics;
+﻿using rogueLike.GameObjects.Enemys;
+using rogueLike.GameObjects.MazeObjects;
+using System.Numerics;
 
 namespace rogueLike.GameObjects
 {
     internal class Creature : GameObject
     {
-        protected int maxStamina = 120;
-        protected int attackCost = 50;
-        protected int moveCost = 20;
-        public int currentStamina = 0;
-        public bool isReadyToMove = false;
+        protected int moveCooldown = 20;
+        protected int attackCooldown = 30;
+
+        public int MoveCooldown { get => moveCooldown; }
+        public int AttackCooldown { get => attackCooldown; }
+        public int lastActionFrame { get; set; }
         public Creature()
         {
+            lastActionFrame = 0;
             SetSymbol('?');
             SetColor(ConsoleColor.Red);
-            Walkable = true;
+            Walkable = false;
         }
-        public void Move(Direction direct)
+        public void Move(Direction direct, World myWorld)
         {
-            if (currentStamina > moveCost)
-            {
                 Vector2 movedPos = Vector2.Zero;
+
                 switch (direct)
                 {
                     case Direction.Up:
@@ -35,37 +38,47 @@ namespace rogueLike.GameObjects
                         movedPos = new Vector2(GetPos().X, GetPos().Y + 1);
                         break;
                 }
-                SetPos(movedPos);
-                isReadyToMove = false;
-                currentStamina -= moveCost;
-            }
+
+                if (myWorld.IsPosWalkable(movedPos))
+                {
+                    Creature? entity = myWorld.GetGameObjectGrid()[(int)Position.X, (int)Position.Y] as Creature;
+                    myWorld.SetObject(GetPos(), myWorld.GetElementAt(GetPos()));
+                    SetPos(movedPos);
+
+                    if(entity != null)
+                    myWorld.SetObject(GetPos(), entity);
+                }     
         }
 
-        public virtual Vector2 Attack(Direction direct)
+        public virtual Vector2 Attack(Direction direct, GameObject[,] world)
         {
-            if (currentStamina > attackCost)
+            Vector2 attackPos = Vector2.Zero;
+            switch(direct)
             {
-                switch (direct)
-                {
-                    case Direction.Up:
-                        currentStamina -= attackCost;
-                        return new Vector2(GetPos().X - 1, GetPos().Y);
-                    case Direction.Down:
-                        currentStamina -= attackCost;
-                        return new Vector2(GetPos().X + 1, GetPos().Y);
-                    case Direction.Left:
-                        currentStamina -= attackCost;
-                        return new Vector2(GetPos().X, GetPos().Y - 1);
-                    case Direction.Right:
-                        currentStamina -= attackCost;
-                        return new Vector2(GetPos().X, GetPos().Y + 1);
-                }
+                case Direction.Left:
+                    attackPos = GetPos() + -Vector2.UnitY;
+                    break;
+                case Direction.Right:
+                    attackPos = GetPos() + Vector2.UnitY;
+                    break;
+                case Direction.Up:
+                    attackPos = GetPos() + -Vector2.UnitX;
+                    break;
+                case Direction.Down:
+                    attackPos = GetPos() + Vector2.UnitX;
+                    break;
             }
+            if (world[(int)attackPos.X, (int)attackPos.Y].GetType() != new Wall().GetType())
+            return attackPos;
+            else
             return Vector2.Zero;
         }
 
-        public void RecoverStamina() => currentStamina = (currentStamina < maxStamina)
-                                                          ? currentStamina + 1
-                                                          : maxStamina;
+        public void Dead(World myWorld)
+        {
+            myWorld.SetObject(Position, myWorld.GetElementAt(Position));
+            SetSymbol(new char());
+            SetPos(Vector2.Zero);
+        }
     }
 }

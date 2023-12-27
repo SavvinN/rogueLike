@@ -18,7 +18,11 @@ namespace rogueLike
             Write(gameObject.GetSymbol());
             ResetColor();
         }
-        public static void DrawFrame(String frame, Player currentPlayer, Zombie[] zombie, Archer[] archer)
+        public static void DrawFrame(String frame,
+                                     Player currentPlayer,
+                                     Zombie[] zombie,
+                                     Archer[] archer,
+                                     List<Arrow> arrow)
         {
             SetCursorPosition(0, 0);
             Write(frame);
@@ -30,39 +34,29 @@ namespace rogueLike
             {
                 DrawObject(a);
             }
+            if(arrow != null)
+            foreach (var a in arrow)
+            {
+                DrawObject(a);
+            }
             DrawObject(currentPlayer);
         }
 
-        public static void DrawGameStats(int X, int frameCount, int stamina)
+        public static void DrawGameStats(int X, int frameCount)
         {
             SetCursorPosition(X, 0);
             WriteLine($"Frame: {frameCount}    ");
-
-            string staminaIndicator = "";
-            for(int i = 0; i < stamina / 10; i++)
-            {
-                staminaIndicator += "|";
-            }
-            SetCursorPosition(X, 1);
-            WriteLine($"stamina: {staminaIndicator}                  ");
         }
 
-        public static void DrawAttack(Vector2 pos)
+        public static void DrawAttack(Vector2 pos, Char ch)
         {
             SetCursorPosition((int)pos.Y, (int)pos.X);
-            Write('*');
+            Write(ch);
         }
 
         public static void DrawIntro()
         {
             Clear();
-            WriteLine("Нажмите на любую кнопку чтобы начать играть!\n\n" +
-                "Двигаться можно на стрелках\n" +
-                "Атака производится путем нажатия кнопок WASD\n\n" +
-                "Цель: найти ключ, и выйти из лабиринта\n" +
-                "Подсказки:\n" +
-                "Ключ выпадает после смерти моба с шансом 10%, или гарантированно после убийств последнего моба\n" +
-                "Меч может заблокировать стрелу, также меч уменьшает кд удара");
             ReadKey();
             Clear();
         }
